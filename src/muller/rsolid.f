@@ -1,0 +1,512 @@
+c
+c
+c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c       This is the end of the debugging routines and the beginning of
+c       the standard polyhedra library
+c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c
+c
+c
+c
+        subroutine rsolid(itype,verts,nverts,ifaces,nfaces)
+        implicit real *8 (a-h,o-z)
+        dimension verts(3,*),ifaces(3,*)
+c
+c       This subroutine returns the vertices and faces of regular (and
+c       not so regular) polyhedra.
+c
+c
+        if( itype .eq. 1 ) then
+c        
+c       ... tetrahedron
+c
+        nverts=4
+        nfaces=4
+c
+c       ... vertices
+c
+        kk=1
+        verts(1,kk)=-1
+        verts(2,kk)=-1/sqrt(3.0d0)
+        verts(3,kk)=-1/sqrt(6.0d0)
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=-1/sqrt(3.0d0)
+        verts(3,kk)=-1/sqrt(6.0d0)
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=+2/sqrt(3.0d0)
+        verts(3,kk)=-1/sqrt(6.0d0)
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=0
+        verts(3,kk)=+3/sqrt(6.0d0)
+c
+c       ... faces
+c
+        kk=1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=1
+        ifaces(3,kk)=3
+c
+        kk=kk+1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=2
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=3
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=1
+        ifaces(3,kk)=4
+c
+        goto 5000
+c
+        endif
+c
+c
+        if( itype .eq. 2 ) then
+c        
+c       ... octahedron
+c
+        nverts=6
+        nfaces=8
+c
+c       ... vertices
+c
+        kk=1
+        verts(1,kk)=-1
+        verts(2,kk)=0
+        verts(3,kk)=0
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=-1
+        verts(3,kk)=0
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=0
+        verts(3,kk)=0
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=+1
+        verts(3,kk)=0
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=0
+        verts(3,kk)=+1
+c
+        kk=kk+1
+        verts(1,kk)=0
+        verts(2,kk)=0
+        verts(3,kk)=-1
+c
+c       ... faces
+c    
+        kk=1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=2
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=3
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=4
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=1
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=1
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=2
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=3
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=4
+        ifaces(3,kk)=6
+c
+        goto 5000
+c
+        endif
+c
+c
+        if( itype .eq. 3 ) then
+c        
+c       ... cube
+c
+        nverts=8
+        nfaces=12
+c
+c
+c       ... vertices
+c
+        kk=1
+        verts(1,kk)=-1
+        verts(2,kk)=-1
+        verts(3,kk)=-1
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=-1
+        verts(3,kk)=-1
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=+1
+        verts(3,kk)=-1
+c
+        kk=kk+1
+        verts(1,kk)=-1
+        verts(2,kk)=+1
+        verts(3,kk)=-1
+c
+        kk=kk+1
+        verts(1,kk)=-1
+        verts(2,kk)=-1
+        verts(3,kk)=+1
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=-1
+        verts(3,kk)=+1
+c
+        kk=kk+1
+        verts(1,kk)=+1
+        verts(2,kk)=+1
+        verts(3,kk)=+1
+c
+        kk=kk+1
+        verts(1,kk)=-1
+        verts(2,kk)=+1
+        verts(3,kk)=+1
+c
+c
+c       ... faces
+c
+        kk=1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=1
+        ifaces(3,kk)=3
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=3
+        ifaces(3,kk)=1
+c
+        kk=kk+1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=2
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=6
+        ifaces(2,kk)=5
+        ifaces(3,kk)=1
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=3
+        ifaces(3,kk)=7
+c
+        kk=kk+1
+        ifaces(1,kk)=7
+        ifaces(2,kk)=6
+        ifaces(3,kk)=2
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=4
+        ifaces(3,kk)=8
+c
+        kk=kk+1
+        ifaces(1,kk)=8
+        ifaces(2,kk)=7
+        ifaces(3,kk)=3
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=1
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=5
+        ifaces(2,kk)=8
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=5
+        ifaces(2,kk)=6
+        ifaces(3,kk)=7
+c
+        kk=kk+1
+        ifaces(1,kk)=7
+        ifaces(2,kk)=8
+        ifaces(3,kk)=5
+c
+        goto 5000
+c
+        endif
+c
+c
+        if( itype .eq. 4 ) then
+c        
+c       ... icosahedron
+c
+        nverts=12
+        nfaces=20
+c
+c
+c       ... vertices
+c
+        nverts=12
+c
+        done=1
+        pi=4*atan(done)
+c
+        do 1400 i=1,5
+        verts(1,i)=cos(2*pi*i/5.0d0)
+        verts(2,i)=sin(2*pi*i/5.0d0)
+        verts(3,i)=0
+ 1400   continue
+c
+c       ... find the top vertex
+c
+        s=sqrt((verts(1,2)-verts(1,1))**2+(verts(2,2)-verts(2,1))**2)
+        d=sqrt(s**2-1)
+c        
+        verts(1,6)=0
+        verts(2,6)=0
+        verts(3,6)=d
+c
+        x=(1-d**2)/(2*d)
+c
+        do 1600 i=1,6
+        verts(3,i)=verts(3,i)+x
+ 1600   continue
+c
+        do 1800 i=1,6
+        verts(1,i+6)=-verts(1,i)
+        verts(2,i+6)=-verts(2,i)
+        verts(3,i+6)=-verts(3,i)
+ 1800   continue
+c
+c
+c       ... faces
+c
+        kk=1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=2
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=3
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=4
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=5
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=5
+        ifaces(2,kk)=1
+        ifaces(3,kk)=6
+c
+        kk=kk+1
+        ifaces(1,kk)=8
+        ifaces(2,kk)=7
+        ifaces(3,kk)=12
+c
+        kk=kk+1
+        ifaces(1,kk)=9
+        ifaces(2,kk)=8
+        ifaces(3,kk)=12
+c
+        kk=kk+1
+        ifaces(1,kk)=10
+        ifaces(2,kk)=9
+        ifaces(3,kk)=12
+c
+        kk=kk+1
+        ifaces(1,kk)=11
+        ifaces(2,kk)=10
+        ifaces(3,kk)=12
+c
+        kk=kk+1
+        ifaces(1,kk)=7
+        ifaces(2,kk)=11
+        ifaces(3,kk)=12
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=1
+        ifaces(3,kk)=10
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=2
+        ifaces(3,kk)=11
+c
+        kk=kk+1
+        ifaces(1,kk)=4
+        ifaces(2,kk)=3
+        ifaces(3,kk)=7
+c
+        kk=kk+1
+        ifaces(1,kk)=5
+        ifaces(2,kk)=4
+        ifaces(3,kk)=8
+c
+        kk=kk+1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=5
+        ifaces(3,kk)=9
+c
+        kk=kk+1
+        ifaces(1,kk)=8
+        ifaces(2,kk)=9
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=9
+        ifaces(2,kk)=10
+        ifaces(3,kk)=1
+c
+        kk=kk+1
+        ifaces(1,kk)=10
+        ifaces(2,kk)=11
+        ifaces(3,kk)=2
+c
+        kk=kk+1
+        ifaces(1,kk)=11
+        ifaces(2,kk)=7
+        ifaces(3,kk)=3
+c
+        kk=kk+1
+        ifaces(1,kk)=7
+        ifaces(2,kk)=8
+        ifaces(3,kk)=4
+c
+        goto 5000
+c
+        endif
+c
+c
+        if( itype .eq. 5 ) then
+c        
+c       ... two glued tetrahedra
+c
+        nverts=5
+        nfaces=6
+c
+c
+c       ... vertices
+c
+        nverts=12
+c
+        done=1
+        pi=4*atan(done)
+c
+        do 2400 i=1,3
+        verts(1,i)=cos(2*pi*i/3.0d0)
+        verts(2,i)=sin(2*pi*i/3.0d0)
+        verts(3,i)=0
+ 2400   continue
+c
+        verts(1,4)=0
+        verts(2,4)=0
+        verts(3,4)=+1
+c
+        verts(1,5)=0
+        verts(2,5)=0
+        verts(3,5)=-1
+c
+c       ... faces
+c
+        kk=1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=2
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=3
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=1
+        ifaces(3,kk)=4
+c
+        kk=kk+1
+        ifaces(1,kk)=2
+        ifaces(2,kk)=1
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=3
+        ifaces(2,kk)=2
+        ifaces(3,kk)=5
+c
+        kk=kk+1
+        ifaces(1,kk)=1
+        ifaces(2,kk)=3
+        ifaces(3,kk)=5
+c
+        endif
+c        
+ 5000   continue
+c
+        r=sqrt(verts(1,1)**2+verts(2,1)**2+verts(3,1)**2)
+c
+        do 6000 i=1,nverts
+        verts(1,i)=verts(1,i)/r
+        verts(2,i)=verts(2,i)/r
+        verts(3,i)=verts(3,i)/r
+ 6000   continue
+c
+        return
+        end
+c
+c
+c
+c
+c

@@ -1,0 +1,53 @@
+License and Copyright
+The FMPS Software is
+
+Copyright © 2011 Leslie Greengard and Zydrunas Gimbutas. All rights reserved.
+
+FMPS is free software; you can redistribute all the MATLAB scripts
+and/or modify them under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. It is also available from the GNU web site.
+
+For the binary (*.exe and *.mex) files, redistribution and use in
+binary form, WITHOUT modification, are permitted provided that the
+following conditions are met: 1. Redistributions in binary form must
+reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials
+provided with the distribution. 2. Neither the name of the
+organization (including but not limited to NYU, the Courant Institute,
+and the Courant Mathematics and Computing Laboratory), nor the names
+of its contributors (including but not limited to Leslie Greengard and
+Zydrunas Gimbutas) may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS
+SOFTWARE IS PROVIDED BY ZYDRUNAS GIMBUTAS AND LESLIE GREENGARD ''AS
+IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ZYDRUNAS GIMBUTAS
+OR LESLIE GREENGARD BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Please acknowledge FMPS and its authors in any program or publication
+in which you use the code. We suggest as a reference: Zydrunas
+Gimbutas and Leslie Greengard, "Fast Multi-Particle Scattering: a
+hybrid solver for the Maxwell equations in microstructured materials,"
+Z. Gimbutas and L. Greengard, arXiv:1104.5293v1, J. Comput. Phys. (to
+appear).
+
+The FMPS software is also available under terms different from those
+of the GNU General Public License. Users interested in such a license
+should contact Leslie Greengard (greengard [at] cims.nyu.edu) for more
+information.
+

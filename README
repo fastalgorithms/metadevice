@@ -1,0 +1,166 @@
+
+This is the third public release of the fast multi-particle (FMPS) solver.
+Date: April 13, 2012
+
+Version 3.0 
+
+%% Copyright (C) 2010-2012: Leslie Greengard and Zydrunas Gimbutas
+%% Contact: greengard@cims.nyu.edu
+%% 
+%% This program is free software; you can redistribute it and/or modify 
+%% it under the terms of the GNU General Public License as published by 
+%% the Free Software Foundation; either version 2 of the License, or 
+%% (at your option) any later version.  This program is distributed in 
+%% the hope that it will be useful, but WITHOUT ANY WARRANTY; without 
+%% even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+%% PARTICULAR PURPOSE.  See the GNU General Public License for more 
+%% details. You should have received a copy of the GNU General Public 
+%% License along with this program; 
+%% if not, see <http://www.gnu.org/licenses/>.
+
+%% examples/fmps-3.0-mi - contributed by Maxim Ignatenko (KSU)
+
+
+
+fmps/ - Fast multiparticle EM solver: matlab scripts and mex files 
+muller/ - Muller solver: evaluate the scattering matrix for a single particle
+
+examples/ - testing drivers and scripts for the FMPS solver
+examples/fmps-3.0-mi - alternative testing drivers and scripts 
+examples/mie - Mie scattering tests
+
+examples/aqctri - triangulation library
+examples/iterate - iterative solver library
+
+src/ - Fortran source code
+contrib/mwrap-0.33.3/ - mwrap source code
+
+
+Matlab
+======
+
+% FMPS - Fast multiparticle scattering in R^3.
+%
+% EM multiparticle scattering in R^3.
+%   fmps - EM multiparticle scattering solver.
+%   fmps_scan - EM multiparticle scattering solver, frequency scan.
+%   fmps_b - EM multiparticle scattering solver (+big sphere).
+%   gold_jc_data - Johnson-Christy gold parameters.
+%
+% EM multiparticle scattering in R^3. Postprocessors.
+%   fmps_post_geom - Plot inclusions and enclosing spheres.
+%   fmps_post_far - Plot the far field signature.
+%   fmps_post_field - Plot the total and incoming E fields on all spheres.
+%
+% Matrix multiplication routines.
+%   em3d_multa_fmps - EM multisphere solver main multiplication routine.
+%   em3d_multa_mpta - EM multipole to local translation routine (Matlab+F90).
+%   em3d_multa_mptaf90 - EM multipole to local translation routine (F90).
+%   em3d_multa_mptafmm - EM multipole to local translation routine (FMM).
+%   em3d_multa_r    - Apply reflection matrices.
+%   em3d_multa_mpta_b - EM multipole to local translation (+big sphere).
+%
+% Reflection coefficient evaluation routines.  
+%   rcoefs_die_arb - Reflection coefficients for a dielectric sphere.
+%   rcoefs_pec - Reflection coefficients for a PEC sphere.
+%   rcoefs_pmc - Reflection coefficients for a PMC sphere.
+%   rmatr_diag - Construct the diagonally scaled reflection matrix.
+%   rmatr_file - Retrieve the reflection matrix from a file.
+%   rcoefs_die_arb_coated - Reflection coefficients for a coated sphere.
+%   rcoefs_pec_coated - Reflection coefficients for a coated PEC sphere.
+%
+% Reflection and transmission coefficient for a dielectric sphere.
+%   rcoefs_die_arb21 - Reflection coefficients for incoming wave.
+%   rcoefs_die_arb12 - Reflection coefficients for outgoing wave.
+%   tcoefs_die_arb21 - Transmission coefficients for incoming wave.
+%   tcoefs_die_arb12 - Transmission coefficients for outgoing wave.
+%
+% FMPS solver library functions.
+%   e3fgrid - Construct a spherical grid in R^3.
+%   get_e3fgrid - Construct a spherical grid structure in R^3.
+%   get_e3fgrid_trunc - Construct a truncated spherical grid in R^3.
+%
+%   em3ehformmp - Form EM multipole from E,H values on a spherical grid.
+%   em3ehformta - Form EM local multipole from E,H values on a spherical grid.
+%   em3mpevaleh - Evaluate EM multipole on a spherical grid.
+%   em3taevaleh - Evaluate EM local multipole on a spherical grid.
+%   em3mpfareh - Evaluate the far field signature of the outgoing EM multipole.
+%
+%   em3linsph - Convert multipole expansion from linear format into unrolled.
+%   em3sphlin - Convert multipole expansion from unrolled format into linear.
+%
+%   em3mpmp3 - Apply EM multipole to multipole translation operator.
+%   em3mpta3 - Apply EM multipole to local translation operator.
+%   em3tata3 - Apply EM local to local translation operator.
+%
+%   em3mpmp3_trunc - Apply EM multipole to multipole translation operator.
+%   em3tata3_trunc - Apply EM local to local translation operator.
+%
+%   green3e - Evaluate the dyadic electric Green's function (Matlab).
+%   green3m - Evaluate the dyadic magnetic Green's function (Matlab).
+%   em3dipole3et - Evaluate E and H fields due to the electric dipole (Matlab).
+%   em3dipole3mt - Evaluate E and H fields due to the magnetic dipole (Matlab).
+%   dipole3et - Evaluate E and H fields due to the electric dipole (F90).
+%   dipole3mt - Evaluate E and H fields due to the magnetic dipole (F90).
+%
+%   emhevalrt - Spherical Bessel h functions (F90).
+%   emjevalrt - Spherical Bessel j functions (F90).
+%   em3hevalrt - Spherical Bessel h functions (Matlab).
+%   em3jevalrt - Spherical Bessel j functions (Matlab).
+%
+%   em3d_mpole_targeval - Evaluate EM multipoles at a collection of targets.
+%   em3d_planearb_targeval - Evaluate an arbitrary plane wave at the targets.
+%   empol - Evaluate electric polarization and magnetization vectors (single).
+%   empolms - Evaluate electric polarization and magnetization vectors.
+%
+%   em3formmp - Form the outgoing EM multipole expansion.
+%   em3formta - Form the incoming EM multipole expansion.
+%   em3mpeval - Evaluate outgoing EM multipole expansion at a single target.
+%   em3taeval - Evaluete incoming EM multipole expansion at a single target.
+%
+% Euler angles and orientation.
+%   rotangles - Construct Euler angles for standard orientation types.
+%   em3orient - Convert Euler angles into orientation frames.
+%   em3euler - Reconstruct Euler angles from a rotation matrix.
+%   em3euler_alt - Alternative representation of Euler angles.
+%
+% Spherical expansion rotation routines.
+%   emabrotaf - Apply forward rotation operator to EM multipole.  
+%   emabrotab - Apply inverse rotation operator to EM multipole.
+%   rotviarecur  - Apply rotation matrix about y-axis, recurrence scheme.
+%   rotproj      - Apply rotation matrix about y-axis, projection scheme.
+%   rotprojvar   - Apply truncated rotation matrix about y-axis (projection).
+%
+% Triangulations.
+%   atriread - Retrieve Cart3d triangulation from a file.
+%   atriwrite - Store Cart3d triangulation to a file.
+%   atriproc - Process triangulations in Cart3d format.
+%
+% Iterative methods.
+%   gmres_simple    - GMRES algorithm.
+%   gmres_restart   - GMRES algorithm with restarts.
+%   gmres_cycle     - GMRES algorithm with cyclic restarts.
+%   bicgstab_simple - BiCG(stab) algorithm.
+%   congr_simple    - Conjugate gradients algorithm.
+%
+% Test and debugging routines.
+%   test_die_arb - Reflection coefficients for a dielectric sphere.
+%   test_pec - Reflection coefficients for a PEC sphere.
+%   test_pmc - Reflection coefficients for a PMC sphere.
+%   test_gold_sphere - Reflection coefficients for a gold sphere.
+%   test_rmatr_diag - Reflection coefficients for a dielectric sphere.
+%   test_rmatr_file - Retrieve reflection coefficients for an inclusion.
+%   fmps_prini - Initialize internal printing/debugging routines.
+%   plot_geometry - Retrieve and plot a Cart3D triangulation.
+%   plot_inclusions - Plot all inclusions.
+%   plot_spheres - Plot all enclosing spheres.
+%   fmps_b_test1 - Test fmps_b solver for one sphere only.
+%   fmps_b_test1post - Compare the output of fmps_b_test1 to exact solution.
+%   test1 - Test dipole3et, em3formmp and em3mpeval.
+%   test2 - Test dipole3et, em3formta and em3taeval.
+%   test3 - Test em3mpta3.
+%   test4 - Test dipole3et, em3formta and em3taeval for a big sphere.
+%   test5 - Test the impedance factor, reflection and trasmission coeffients.
+%   test6 - Shift local expansion for a dielectric sphere.
+%   test7 - Shift local and mulitpole expansions for a dielectric sphere.
+%

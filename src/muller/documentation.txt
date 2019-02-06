@@ -1,0 +1,13 @@
+
+test11c4.f - Exterior PEC solver for the Maxwell equation in R^3, MFIE v2,
+	    arbitrary quadratic or flat triangulation,
+	    add configuration file, rearrange equations for 
+	    better GMRES convergence.
+	    Current FMPS solver for PEC inclusions.
+
+test12c4.f - Muller solver for the Maxwell equation in R^3, dielectric interface
+	    arbitrary eps and mu, arbitrary quadratic or flat triangulation,
+	    add configuration file, rearrange equations for 
+	    better GMRES convergence. 
+	    Current FMPS solver.
+
