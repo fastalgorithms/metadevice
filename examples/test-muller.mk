@@ -60,9 +60,11 @@ endif
 #
 # SOURCE FILE LIST
 #
-SRCDIR = ../src/muller
+SRCDIR = ../src
 
-fsrcs = test-muller.f \
+f90srcs = test-muller.f90
+
+fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \
   $(SRCDIR)/atritools3.f \
   $(SRCDIR)/patchmatc4.f \

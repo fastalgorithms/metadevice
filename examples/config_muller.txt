@@ -1,5 +1,5 @@
 3
-sphere320.q.tri
+../data/geom/sphere320.q.tri
 12.5 12.5 37.5 0 0 0
 60
 1000 0.2283 6.4700
