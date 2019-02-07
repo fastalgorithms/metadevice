@@ -2,17 +2,42 @@
 
 ###HOST=linux-gfortran
 HOST=macosx-gfortran
+HOST=macosx-gfortran-openmp
 
 
 ifeq ($(HOST),macosx-gfortran)
   PROJECT = muller_macosx
   OBJSUF = o
   MODSUF = mod
-  FC = gfortran
+  FC = gfortran-8
   FFLAGS = -O2
   LDFLAGS = 
   #FLINK=gfortran -o $(PROJECT) -static
+  FLINK = gfortran-8 -o $(PROJECT)
+endif
+
+ifeq ($(HOST),macosx-gfortran-openmp)
+  PROJECT = muller_macosx_openmp
+  OBJSUF = o
+  MODSUF = mod
+  FC = gfortran-8
+  FFLAGS = -O2 -fopenmp -w
+  LDFLAGS = -fopenmp -Wl,-stack_size,0x80000000
+  FLINK = gfortran-8 -o $(PROJECT)
+  export OMP_NUM_THREADS=4
+  export OMP_STACKSIZE=2048M
+endif
+
+ifeq ($(HOST),linux-gfortran-openmp)
+  PROJECT = muller_linux_openmp
+  OBJSUF = o
+  MODSUF = mod
+  FC = gfortran
+  FFLAGS = -O2 -fopenmp -w
+  LDFLAGS = -fopenmp
   FLINK = gfortran -o $(PROJECT)
+  export OMP_NUM_THREADS=32
+  export OMP_STACKSIZE=4096M
 endif
 
 # ifeq ($(HOST),linux-gfortran-openmp)

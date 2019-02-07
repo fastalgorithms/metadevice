@@ -149,7 +149,7 @@ c
         niter=niter+1
 c
 cccc        call prinf('niter=*',niter,1)
-        write(*,*) 'in cgmres, niter=', niter
+cccc        write(*,*) 'in cgmres, niter=', niter
 cccc        call prinf('in cgmres, m=*',m,1)
 c
         nsteps=10
@@ -331,8 +331,14 @@ c
 c
         d=sqrt(d/n)
         errs(niter)=dble(d)
-        write(*,*) 'in cgmres, rms error=', errs(niter)
-        write(*,*) 'in cgmres, rel error=', errs(niter)/rhsnorm
+ccc        write(*,*) 'in cgmres, rms error=', errs(niter)
+ccc        write(*,*) 'in cgmres, rel error=', errs(niter)/rhsnorm
+
+        write(*,4999)
+     $      'in cgmres, niter = ', niter, ', rms err = ', errs(niter),
+     $      ', rel err = ', errs(niter)/rhsnorm
+ 4999   format(a,i3,a,e9.2,a,e9.2)
+        
 c
 ccc        if( abs(d) .lt. eps ) return
         if( abs(d) .lt. eps*errs(1) ) return
