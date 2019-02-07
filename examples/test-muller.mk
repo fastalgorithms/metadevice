@@ -1,8 +1,8 @@
 
 
 ###HOST=linux-gfortran
-HOST=macosx-gfortran
-HOST=macosx-gfortran-openmp
+#HOST=macosx-gfortran
+#HOST=macosx-gfortran-openmp
 
 
 ifeq ($(HOST),macosx-gfortran)
@@ -60,33 +60,47 @@ endif
 #
 # SOURCE FILE LIST
 #
+SRCDIR = ../src/muller
 
 fsrcs = test-muller.f \
-  atrirouts.f \
-  atritools3.f \
-  patchmatc4.f \
-  dotcross3d.f \
-  inter3dn.f \
-  rsolid.f \
-  emdyadic.f \
-  emplanew.f \
-  emrouts2.f \
-  emabrot2.f \
-  dfft.f \
-  hjfuns3d.f \
-  rotviarecur3.f yrecursion.f xrecursion.f \
-  triaadap.f ctriaadap.f \
-  triagauc.f triasymq.f \
-  selfquad.f radial.f print.f legendre.f \
-  c8triadam.f \
-  c9triadam.f \
-  c28triadam.f \
-  c29triadam.f \
-  cgmres_rel.f cgmressq_rel.f cbicgstab_rel.f \
-  cqrsolve.f \
-  legeexps.f \
-  ortho2eva.f ortho2exps4.f orthom.f \
-  prini.f prinm.f xprini.f
+  $(SRCDIR)/atrirouts.f \
+  $(SRCDIR)/atritools3.f \
+  $(SRCDIR)/patchmatc4.f \
+  $(SRCDIR)/dotcross3d.f \
+  $(SRCDIR)/inter3dn.f \
+  $(SRCDIR)/rsolid.f \
+  $(SRCDIR)/emdyadic.f \
+  $(SRCDIR)/emplanew.f \
+  $(SRCDIR)/emrouts2.f \
+  $(SRCDIR)/emabrot2.f \
+  $(SRCDIR)/dfft.f \
+  $(SRCDIR)/hjfuns3d.f \
+  $(SRCDIR)/rotviarecur3.f \
+  $(SRCDIR)/yrecursion.f \
+  $(SRCDIR)/xrecursion.f \
+  $(SRCDIR)/triaadap.f \
+  $(SRCDIR)/ctriaadap.f \
+  $(SRCDIR)/triagauc.f \
+  $(SRCDIR)/triasymq.f \
+  $(SRCDIR)/selfquad.f \
+  $(SRCDIR)/radial.f \
+  $(SRCDIR)/print.f \
+  $(SRCDIR)/legendre.f \
+  $(SRCDIR)/c8triadam.f \
+  $(SRCDIR)/c9triadam.f \
+  $(SRCDIR)/c28triadam.f \
+  $(SRCDIR)/c29triadam.f \
+  $(SRCDIR)/cgmres_rel.f \
+  $(SRCDIR)/cgmressq_rel.f \
+  $(SRCDIR)/cbicgstab_rel.f \
+  $(SRCDIR)/cqrsolve.f \
+  $(SRCDIR)/legeexps.f \
+  $(SRCDIR)/ortho2eva.f \
+  $(SRCDIR)/ortho2exps4.f \
+  $(SRCDIR)/orthom.f \
+  $(SRCDIR)/prini.f \
+  $(SRCDIR)/prinm.f \
+  $(SRCDIR)/xprini.f
 
 objs = $(fsrcs:.f=.o) $(f90srcs:.f90=.o)
 
