@@ -62,7 +62,7 @@ endif
 #
 SRCDIR = ../src
 
-f90srcs = test-muller.f90
+f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90
 
 fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \

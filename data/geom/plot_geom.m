@@ -5,7 +5,7 @@
 geom_type = 2;
 filename_geo = 'sphere320.a.tri';
 filename_geo = 'sphere720.a.tri';
-filename_geo = '2ellipsoids-25x25x75-sep40.a.tri';
+filename_geo = '2ellipsoids-25x25x75-sep35.a.tri';
 %%%filename_geo = 'sphere11520.a.tri';
 
 fid = fopen(filename_geo,'r');

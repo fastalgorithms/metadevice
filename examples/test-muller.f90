@@ -274,6 +274,17 @@ program test_muller
   call prinf('after oversampling, npatches=*',npatches,1)
 
 
+  !
+  ! plot these triangles
+  !
+  iw = 100
+  kover = 0
+  call xtri_vtk_surf(iw, npatches, rpatchpnt, &
+      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, kover, &
+      'the nanofin discretization')
+
+
+
   !c
   !c       ... map the interpolation points on the patch into R^3 
   !c        
@@ -629,7 +640,7 @@ program test_muller
       source(2)=-0.1
       source(3)=0.3
       targ(1)=10
-      targ(2)=20
+      targ(2)=30
       targ(3)=-30
     endif
 
@@ -868,4 +879,9 @@ program test_muller
 
 
 end program test_muller
+
+
+
+
+
 
