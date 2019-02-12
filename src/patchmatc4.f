@@ -2154,14 +2154,14 @@ c
 c        m=3
 c        eps=1d-3
 c
-c        m=6
-c        eps=1d-6
+        m=6
+        eps=1d-6
 c
-        m=12
-        eps=1d-12
+cccc        m=12
+cccc        eps=1d-12
 c
-        m=14
-        eps=1d-14
+cccc        m=14
+cccc        eps=1d-14
 c
 c        m=16
 c        eps=1d-16

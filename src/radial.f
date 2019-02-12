@@ -47,7 +47,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         dimension rad(1)
         dimension rs(2,1000),ts(2,1000)
         character*2 str
-        character*14 filename
+        character*27 filename
 c
 c       Read a table of precomputed quadrature rules from a file
 c       on the disk into the user-supplied array.  The table is
@@ -75,7 +75,7 @@ c   rad - on return, this user-supplied array will contain a quadrature
 c       table and a structure header describing the quadratures
 c
 c
- 0050 format ("radquads",I2.2,".txt")
+ 0050 format ("../data/quad/radquads",I2.2,".txt")
  0100 format (I3.3)
  0200 format (D44.36)
 c
