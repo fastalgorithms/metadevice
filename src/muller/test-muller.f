@@ -167,7 +167,7 @@ c
 c       ... retrieve the interpolation nodes
 c
         itype=1
-        norder=3
+        norder=2
         call ortho2siexps(itype,norder,npols,usout,vsout,
      1     umatr,vmatr,wsout)
 c
@@ -669,12 +669,8 @@ c
         call em3submuladd
      $     (4*npts,cmatr,npts,npts,cmatr0,npts+1,3*npts+1,+cems_id)
 c
-c
-        t2=second()
-C$        t2=omp_get_wtime()
-c
+
         call prinf('after patchmatc, ier=*',ier,1)
-        call prin2('in patchmatc, time=*',t2-t1,1)
 c
 cccc        call em3debug(4*npts,cmatr,whts)
 c
@@ -799,31 +795,22 @@ c
             call prin2('after cgmres, errs=*',errs,niter)
             call prin2('in cgmres, time=*',t2-t1,1)
           endif
-c
-c
+
+
 c
           if( itype_solve .eq. 3 ) then
 c
             call prinf('entering cbicgstab, 4 x npts=*',4*npts,1)
-c
-            t1=second()
-C$        t1=omp_get_wtime()
-ccceps=1e-5
-cccnumit=40
-c
             if( allocated(w) ) deallocate(w)
             allocate( w( 2*11*(4*npts) ) )
 c
             call cbicgstab(ier,4*npts,cmatr,
      $          em3multa,par1,par2,rhs,eps,numit,
      1          sol,niter,errs,w)
-            t2=second()
-C$        t2=omp_get_wtime()
 c
             call prinf('after cbicgstab, ier=*',ier,1)
             call prinf('after cbicgstab, niter=*',niter,1)
             call prin2('after cbicgstab, errs=*',errs,niter)
-            call prin2('in cbicgstab, time=*',t2-t1,1)
 c
           endif
 c
@@ -844,8 +831,7 @@ c
             call cgmressq(ier,4*npts,cmatr,
      $          em3multa,par1,par2,rhs,eps,numit,
      1          sol,niter,errs,ngmrec,w)
-            t2=second()
-C$        t2=omp_get_wtime()
+
 c
             call prinf('after cgmressq, ier=*',ier,1)
             call prinf('after cgmressq, niter=*',niter,1)
@@ -871,8 +857,6 @@ c
           print *
           call prin2('target=*',target,3)
 c
-ccc         call em3direva(rk,source,target,evec0,hvec0)
-c
           if( ifexterior .eq. 1 ) id=1
           if( ifexterior .eq. 0 ) id=2
           rk_id=omega*sqrt(cmus(id))*sqrt(ceps(id))
@@ -882,14 +866,12 @@ c
           call em3direva3(rk_id,ceps_id,cmus_id,
      $        source_cjvec,source_cmvec,source,target,evec0,hvec0)
 c
-cccc          do i=1,3
           evec1(1)=(evec(1)-evec0(1))/evec0(1)
           evec1(2)=(evec(2)-evec0(2))/evec0(2)
           evec1(3)=(evec(3)-evec0(3))/evec0(3)
           hvec1(1)=(hvec(1)-hvec0(1))/hvec0(1)
           hvec1(2)=(hvec(2)-hvec0(2))/hvec0(2)
           hvec1(3)=(hvec(3)-hvec0(3))/hvec0(3)
-cccc          enddo
 
           do i=1,3
             evec2(i) = abs(evec1(i))
@@ -921,6 +903,7 @@ cccc          enddo
           print *
           call prin2('from solver, hvec=*',hvec,6)
           call prin2('directly, hvec0=*',hvec0,6)
+          call prin2('relative error, H=*',hvec1,6)
           call prin2('abs relative error, H=*',hvec2,6)
           call prin2('norm of abs relative err, H = *', herr, 1)
 
@@ -1131,31 +1114,30 @@ c
 ccc        call em3soleva(rk,target,xyzinfo,sol,whts,npts,evec,hvec)
 c
         if( 1.eq.2 ) then
-        if( ifexterior .eq. 1 ) id=1
-        if( ifexterior .eq. 0 ) id=2
-        rk_id=omega*sqrt(cmus(id))*sqrt(ceps(id))
-        ceps_id=ceps(id)
-        cmus_id=cmus(id)
-        cems_id=sqrt(cmus(id))*sqrt(ceps(id))
-        call em3soleva2(rk_id,ceps_id,cmus_id,
-     $     target,xyzinfo,sol,whts,npts,evec,hvec)
+          if( ifexterior .eq. 1 ) id=1
+          if( ifexterior .eq. 0 ) id=2
+          rk_id=omega*sqrt(cmus(id))*sqrt(ceps(id))
+          ceps_id=ceps(id)
+          cmus_id=cmus(id)
+          cems_id=sqrt(cmus(id))*sqrt(ceps(id))
+          call em3soleva2(rk_id,ceps_id,cmus_id,
+     $        target,xyzinfo,sol,whts,npts,evec,hvec)
 c
-        call prin2('target=*',target,3)
-        call prin2('evec=*',evec,6)
-        call prin2('hvec=*',hvec,6)
+          call prin2('target=*',target,3)
+          call prin2('evec=*',evec,6)
+          call prin2('hvec=*',hvec,6)
         endif
 c
 c
 c       ... evaluate the outgoing multipole expansion
 c
         call em3soleva2a(
-     $     xyzinfo,sol,whts,npts,sol_cjvecs,sol_cmvecs)
+     $      xyzinfo,sol,whts,npts,sol_cjvecs,sol_cmvecs)
 c
 ccc        call prin2('sol_cjvecs=*',sol_cjvecs,3*npts)
 ccc        call prin2('sol_cmvecs=*',sol_cmvecs,3*npts)
 c
         do i=1,npts
-        sol_cjvecs(1,i)=sol_cjvecs(1,i)*whts(i)
         sol_cjvecs(2,i)=sol_cjvecs(2,i)*whts(i)
         sol_cjvecs(3,i)=sol_cjvecs(3,i)*whts(i)
         sol_cmvecs(1,i)=sol_cmvecs(1,i)*whts(i)
@@ -1169,8 +1151,8 @@ c
         center(3)=0
 c
         call em3formmp
-     $     (rk,xyzs,sol_cjvecs,sol_cmvecs,
-     $     npts,center,ampole,bmpole,nterms)
+     $      (rk,xyzs,sol_cjvecs,sol_cmvecs,
+     $      npts,center,ampole,bmpole,nterms)
 c
         call em3sphlin(ampole,nterms,w)
         call xprin2('outgoing ampole=*',w,2*(nterms+1)**2)

@@ -1,8 +1,8 @@
 
 
 ###HOST=linux-gfortran
-HOST=macosx-gfortran
-HOST=macosx-gfortran-openmp
+#HOST=macosx-gfortran
+#HOST=macosx-gfortran-openmp
 
 
 ifeq ($(HOST),macosx-gfortran)
@@ -34,8 +34,8 @@ ifeq ($(HOST),linux-gfortran-openmp)
   MODSUF = mod
   FC = gfortran
   FFLAGS = -O2 -fopenmp -w
-  LDFLAGS = -fopenmp
-  FLINK = gfortran -o $(PROJECT)
+  LDFLAGS =
+  FLINK = gfortran -fopenmp -o $(PROJECT)
   export OMP_NUM_THREADS=32
   export OMP_STACKSIZE=4096M
 endif
