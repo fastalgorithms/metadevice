@@ -1981,80 +1981,53 @@ c
         complex *16 cmatr(npts,npts)
         complex *16 tmatr_omp(90000)
 c
-c
-c       ... construct the off-diagonal blocks
-c
-ccc        do 1400 k=1,1
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(i,j,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp) 
 C$OMP$SCHEDULE(DYNAMIC)
-cccC$OMP$NUM_THREADS(1) 
-ccc        do 1400 k=1,0
-        do 1400 j=1,npatches
+        do j=1,npatches
+
+          allocate(w_omp(2000000))
+
+          do i=1,npatches
+
 c
-        allocate(w_omp(2000000))
+c           ... (i,j), i index - target, j index - source
 c
-ccc        call prinf('od,j=*',j,1)
+            if ( i .eq. j ) then
 c
-        do 1200 i=1,npatches
-        if ( i .eq. j ) goto 1200
-c        
-c       ... (i,j), i index - target, j index - source
+c             ... construct the diagonal (self interaction) blocks
 c
-        ii=ixyzs(1,i)
-        jj=ixyzs(1,j)
-        ipols=ixyzs(2,i)
-        jpols=ixyzs(2,j)
+              ii=ixyzs(1,i)
+              ipols=ixyzs(2,i)
+              call patchmatc_dd(i,ipols,i,ipols,
+     $            npatches,patchpnt,par1,par2,par3,par4,
+     $            norder,npols,us,vs,umatr,vmatr,
+     $            ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
+     $            interact,par5,par6,par7,par8,
+     $            tmatr_omp,w_omp,lw,lused,ier)
+              call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,ii,ipols)
+            endif
+c            
+c           ... construct the off-diagonal blocks
 c
-cc        call prinf('i=*',i,1)
-cc        call prinf('j=*',j,1)
-c
-        call patchmatc_od(i,ipols,j,jpols,
-     $     npatches,patchpnt,par1,par2,par3,par4,
-     $     norder,npols,us,vs,umatr,vmatr,
-     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $     interact,par5,par6,par7,par8,
-     $     tmatr_omp,w_omp,lw,lused,ier)
-c
-        call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,jj,jpols)
-c        
- 1200   continue
-        deallocate(w_omp)
- 1400   continue        
-C$OMP END PARALLEL DO
-c
-c
-ccc        return
-c
-c       
-c       ... construct the diagonal (self interaction) blocks
-c
-C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(i,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp) 
-C$OMP$SCHEDULE(DYNAMIC)
-cccC$OMP$NUM_THREADS(2) 
-        do 2200 i=1,npatches
-c
-        allocate(w_omp(2000000))
-c
-c       ... (i,i) 
-c
-        ii=ixyzs(1,i)
-        ipols=ixyzs(2,i)
-c
-ccc        call prinf('dd,i=*',i,1)
-c
-        call patchmatc_dd(i,ipols,i,ipols,
-     $     npatches,patchpnt,par1,par2,par3,par4,
-     $     norder,npols,us,vs,umatr,vmatr,
-     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $     interact,par5,par6,par7,par8,
-     $     tmatr_omp,w_omp,lw,lused,ier)
-c
-        call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,ii,ipols)
-c              
-        deallocate(w_omp)
- 2200   continue
+            if (i .ne. j) then
+              ii=ixyzs(1,i)
+              jj=ixyzs(1,j)
+              ipols=ixyzs(2,i)
+              jpols=ixyzs(2,j)
+              call patchmatc_od(i,ipols,j,jpols,
+     $            npatches,patchpnt,par1,par2,par3,par4,
+     $            norder,npols,us,vs,umatr,vmatr,
+     $            ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
+     $            interact,par5,par6,par7,par8,
+     $            tmatr_omp,w_omp,lw,lused,ier)
+              call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,jj,jpols)
+            endif
+c      
+          enddo
+c          
+          deallocate(w_omp)
+        enddo
 C$OMP END PARALLEL DO
 c
         return

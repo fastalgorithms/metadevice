@@ -36,23 +36,22 @@ ifeq ($(HOST),linux-gfortran-openmp)
   FFLAGS = -O2 -fopenmp -w
   LDFLAGS =
   FLINK = gfortran -fopenmp -o $(PROJECT)
-  export OMP_NUM_THREADS=32
-  export OMP_STACKSIZE=4096M
+  #ulimit -s unlimited
+  #export OMP_NUM_THREADS=32
+  #export OMP_STACKSIZE=4096M
 endif
 
-# ifeq ($(HOST),linux-gfortran-openmp)
-
-# # buggy compiler, proceed anyway, use gfortran > 4.4.0
-# PROJECT=muller_lnx64_omp
-# OBJSUF=o
-# MODSUF=mod
-# FC=gfortran -c 
-# FFLAGS=-O3 --openmp
-# FLINK=gfortran -o $(PROJECT) --openmp
-# ### export OMP_NUM_THREADS=4
-# ### export OMP_STACKSIZE=1024M
-
-# else
+ifeq ($(HOST),linux-intel-openmp)
+  PROJECT = muller_linux_openmp
+  OBJSUF = o
+  FC = ifort
+  FFLAGS = -O2 -qopenmp -w
+  LDFLAGS =
+  FLINK = ifort -qopenmp -o $(PROJECT)
+  #ulimit -s unlimited
+  #export OMP_NUM_THREADS=32
+  #export OMP_STACKSIZE=4096M
+endif
 
 
 

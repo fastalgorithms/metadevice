@@ -105,8 +105,7 @@ program test_muller
   read(ir,*) filename_out        
   filename_out=trim(adjustl(filename_out))
   call prina('filename_out=*',filename_out,78)
-
-  open(unit=72,file=filename_out)
+  
 
   done=1
   pi=4*atan(done)
@@ -161,7 +160,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder=2
+  norder=1
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -311,6 +310,9 @@ program test_muller
   !
   ! ... allocate work arrays for the solver
   !
+  gb = 4*npts*4.0d0*npts*2*8/((2**10)*(2**10)*(2**10))
+  call prin2('trying to allocate mem, gb = *', gb, 1)
+  
   allocate( cmatr(4*npts*4*npts) )
   allocate( rhs(4*npts) ) 
   allocate( sol(4*npts) )
@@ -741,7 +743,7 @@ program test_muller
     call prin2('abs relative error, H=*',hvec2,6)
     call prin2('norm of abs relative err, H = *', herr, 1)
 
-    stop
+    !stop
 
 
 
@@ -756,6 +758,9 @@ program test_muller
   ! . . . call Muller solver for multiple incoming fields and generate
   !    the corresponding scattering matrix acting on coefficients
   !
+
+  open(unit=72,file=filename_out)
+
   allocate( ampole(0:nterms,-nterms:nterms) ) 
   allocate( bmpole(0:nterms,-nterms:nterms) ) 
 
