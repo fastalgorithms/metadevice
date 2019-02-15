@@ -53,6 +53,15 @@ ifeq ($(HOST),linux-intel-openmp)
   #export OMP_STACKSIZE=4096M
 endif
 
+ifeq ($(HOST),linux-intel)
+  PROJECT = muller_linux
+  OBJSUF = o
+  FC = ifort
+  FFLAGS = -O2 -w
+  LDFLAGS =
+  FLINK = ifort -o $(PROJECT)
+endif
+
 
 
 
