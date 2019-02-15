@@ -23,7 +23,7 @@ program test_muller
   allocatable :: whts(:)
 
   external fpatchpnt,qpatchpnt,cpatchpnt
-  external spatchpnt,wpatchpnt,rpatchpnt
+  external spatchpnt,wpatchpnt,rpatchpnt, epatchpnt
 
   external lfinter1,lfinter2,lfinter3,lfinter4
   external hfinter1,hfinter2,hfinter3,hfinter4
@@ -90,6 +90,8 @@ program test_muller
   open(unit=ir, file='config_muller.txt')
 
   read(ir,*) igeom
+  igeom = 1
+  
   read(ir,'(a)') filename_geo
   filename_geo=trim(adjustl(filename_geo))
   call prina('filename_geo=*',filename_geo,78)
@@ -160,7 +162,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder=1
+  norder = 4
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -202,9 +204,9 @@ program test_muller
   !c       ... compute a triangulation exactly
   !c
   if( igeom .eq. 1 ) then
-    itype=4
+    itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp=4
+    noversamp = 5
   endif
 
   !c
@@ -238,33 +240,41 @@ program test_muller
     close(ir)
   endif
 
-  !c
-  !c
-  !c       ... optional, resize and shift
-  !c
-  do i=1,nverts
-    verts(1,i)=verts(1,i)*scale_geo(1) + shift_geo(1)
-    verts(2,i)=verts(2,i)*scale_geo(2) + shift_geo(2)
-    verts(3,i)=verts(3,i)*scale_geo(3) + shift_geo(3)
-  enddo
+  !
+  !
+  ! package up info into qtriainfo
+  !
+  
+  if (igeom .eq. 1) then
+    call gentriainfo(verts,nverts,ifaces,nfaces,qtriainfo)
+    npatches=nfaces
+  endif
 
-
-  if( igeom .eq. 1 .or. igeom .eq. 2 ) then
-
+  if (igeom .eq. 2) then
+    do i=1,nverts
+      verts(1,i)=verts(1,i)*scale_geo(1) + shift_geo(1)
+      verts(2,i)=verts(2,i)*scale_geo(2) + shift_geo(2)
+      verts(3,i)=verts(3,i)*scale_geo(3) + shift_geo(3)
+    enddo
     call genqtriainfo_flat(verts,nverts,ifaces,nfaces,qtriainfo)
     npatches=nfaces
-
   endif
 
   if( igeom .eq. 3 ) then
+    do i=1,nverts
+      verts(1,i)=verts(1,i)*scale_geo(1) + shift_geo(1)
+      verts(2,i)=verts(2,i)*scale_geo(2) + shift_geo(2)
+      verts(3,i)=verts(3,i)*scale_geo(3) + shift_geo(3)
+    enddo
     call genqtriainfo(verts,nverts,iqfaces,nfaces,qtriainfo)
     npatches=nfaces
   endif
 
 
-  !c
-  !c       ... refine the triangulation if so desired
-  !c
+  !
+  ! ... refine the triangulation if so desired (by generating
+  ! refinment info)
+  !
   call genrefineinfo(noversamp,npatches, &
       npatchesout,ipatchinfo,refineinfo)
 
@@ -279,9 +289,8 @@ program test_muller
   iw = 100
   kover = 0
   call xtri_vtk_surf(iw, npatches, rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, kover, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, kover, &
       'the nanofin discretization')
-
 
 
   !c
@@ -325,10 +334,9 @@ program test_muller
   call prinf('============================*',i,0)
 
   call patchallpnts(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       npols,usout,vsout,ixyzs,xyzs,xyznorms, &
       xyztang1s,xyztang2s,npts)
-
   
   call prinf('npts=*',npts,1)
   call prinf('npatches=*',npatches,1)
@@ -338,19 +346,13 @@ program test_muller
   ! call prin2('xyznorms=*',xyznorms,3*npatches)
 
   call patchallwhts(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       npols,usout,vsout,wsout,whts,npts)
 
 
   !
   ! ... call patchmatc discretizer
   !
-  lw=2000000
-  allocate( w(lw) )
-
-  call prinf('============================*',i,0)
-  call prinf('... assembling system matrix*',i,0)
-
   !
   ! note that the order of the self-quadrature is set by the paraemter
   ! norder0 in the subroutine patchmatc in the file patchmatc4.f, and
@@ -360,6 +362,23 @@ program test_muller
   ! for the off-diagonal blocks is set by m and eps in the subroutine
   ! patchmatc_od in the file patchmatc4.f
   !
+  call prinf('============================*',i,0)
+  call prinf('... assembling system matrix*',i,0)
+
+
+
+  !call build_muller_matrix(info, npatches, rpatchpnt, qtriainfo, &
+  !    epatchpnt, ipatchinfo, refineinfo, &
+  !    norder, npols, usout, vsout, umatr, vmatr, &
+  !    ixyzs, xyzs, xyznorms, xyztang1s, xyztang2s, npts, &
+  !    cmatr, ier)
+
+
+  
+  lw=2000000
+  allocate( w(lw) )
+
+
   
   id=1
   rk_id=omega*sqrt(cmus(id))*sqrt(ceps(id))
@@ -371,7 +390,7 @@ program test_muller
   info(2)=1
   call prinf('tangential component: H(11)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -385,7 +404,7 @@ program test_muller
 
   call prinf('tangential component: E(11)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -400,7 +419,7 @@ program test_muller
   info(2)=2
   call prinf('tangential component: H(12)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -413,7 +432,7 @@ program test_muller
 
   call prinf('tangential component: E(12)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -428,7 +447,7 @@ program test_muller
   info(2)=1
   call prinf('tangential component: H(21)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -441,7 +460,7 @@ program test_muller
 
   call prinf('tangential component: E(21)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -456,7 +475,7 @@ program test_muller
   info(2)=2
   call prinf('tangential component: H(22)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -470,7 +489,7 @@ program test_muller
 
   call prinf('tangential component: E(22)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -492,7 +511,7 @@ program test_muller
   info(2)=1
   call prinf('tangential component: H(11)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -506,7 +525,7 @@ program test_muller
 
   call prinf('tangential component: E(11)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -521,7 +540,7 @@ program test_muller
   info(2)=2
   call prinf('tangential component: H(12)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -534,7 +553,7 @@ program test_muller
 
   call prinf('tangential component: E(12)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -549,7 +568,7 @@ program test_muller
   info(2)=1
   call prinf('tangential component: H(21)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -562,7 +581,7 @@ program test_muller
 
   call prinf('tangential component: E(21)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -577,7 +596,7 @@ program test_muller
   info(2)=2
   call prinf('tangential component: H(22)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter3n,rk_id,info,par7,par8, &
@@ -591,7 +610,7 @@ program test_muller
 
   call prinf('tangential component: E(22)=*',id,1)
   call patchmatc(npatches,rpatchpnt, &
-      qtriainfo,qpatchpnt,ipatchinfo,refineinfo, &
+      qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
       eminter1n,rk_id,info,par7,par8, &
@@ -743,7 +762,7 @@ program test_muller
     call prin2('abs relative error, H=*',hvec2,6)
     call prin2('norm of abs relative err, H = *', herr, 1)
 
-    !stop
+    stop
 
 
 

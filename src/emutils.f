@@ -7,14 +7,18 @@ c
         implicit real *8 (a-h,o-z)
         complex *16 a(n,n),x(n),y(n)
 c
-c$OMP PARALLEL DO DEFAULT(SHARED)
-        do 1200 i=1,n
-        y(i)=0
-        do 1100 j=1,n
-        y(i)=y(i)+a(i,j)*x(j)
- 1100   continue
- 1200   continue
-c$OMP END PARALLEL DO
+ccc$OMP PARALLEL DO DEFAULT(SHARED)
+cc        do i=1,n
+cc          y(i)=0
+cc          do j=1,n
+cc            y(i)=y(i)+a(i,j)*x(j)
+cc          enddo
+cc        enddo
+ccc$OMP END PARALLEL DO
+c
+c       call the BLAS2 routine
+c
+        call zmatvec(n, n, a, x, y)        
 c
         return
         end

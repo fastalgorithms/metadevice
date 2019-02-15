@@ -499,31 +499,6 @@ end subroutine xtri_quadratic
 
 
 
-subroutine dmatvec(m, n, a, x, y)
-  implicit double precision (a-h,o-z)
-  double precision :: a(m,n), x(n), y(m)
-
-  do i = 1,m
-    dd = 0
-    do j = 1,n
-      dd = dd + a(i,j)*x(j)
-    end do
-    y(i) = dd
-  end do
-  
-
-  return
-end subroutine dmatvec
-
-
-
-
-
-
-
-
-
-
 
 subroutine xtri_vtk_flat_scalars(iw, ntri, xtri1s, m, sigma, title)
   implicit real *8 (a-h,o-z)
