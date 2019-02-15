@@ -622,7 +622,7 @@ c
 c       ... ellipsoid
 c
         sx=25.0d0
-        sy=12.5d0
+        sy=25.0d0
         sz=50d0
 c
         xyz(1)=xyz(1)*sx
@@ -1925,13 +1925,13 @@ c
 ccc        norder0=norder
         norder0=12
         if( norder0 .eq. 4 .or. norder0 .eq. 8 .or. 
-     $     norder0 .eq. 12 .or. norder0 .eq. 16 .or. 
-     $     norder0 .eq. 20 ) then
-        call self_quadrature_init(ier0,norder0)
+     $      norder0 .eq. 12 .or. norder0 .eq. 16 .or. 
+     $      norder0 .eq. 20 ) then
+          call self_quadrature_init(ier0,norder0)
         else
-        write(*,*) 'norder0 =', norder0
-        write(*,*) 'abort, norder0 must be 4, 8, 12, 16, or 20'
-        stop
+          write(*,*) 'norder0 =', norder0
+          write(*,*) 'abort, norder0 must be 4, 8, 12, 16, or 20'
+          stop
         endif
 
 c
@@ -1946,6 +1946,8 @@ c
 c
         lused7=ltmatr
 c
+cccc        print *, 'calling patchmatc0 ... '
+        
         call patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
      $     norder,npols,us,vs,umatr,vmatr,
      $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
@@ -1976,37 +1978,27 @@ c
         dimension xyztang1s(3,1),xyztang2s(3,1)
 c
         dimension w(1)
-        real *8, allocatable :: w_omp(:)
+        double precision :: rad(1000000)
+        double complex, allocatable :: w_omp(:), tmatr_omp(:)
+        double complex, allocatable :: w2_omp(:), tmatr2_omp(:)
         complex *16 tmatr(1)
         complex *16 cmatr(npts,npts)
-        complex *16 tmatr_omp(90000)
 c
-C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(i,j,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp) 
-C$OMP$SCHEDULE(DYNAMIC)
-        do j=1,npatches
+cccc        print *, 'inside patchmatc0 . . . '
 
-          allocate(w_omp(2000000))
+        lw = 2000000
+        
+C$OMP PARALLEL DO DEFAULT(SHARED)
+C$OMP$PRIVATE(i,j,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp)
+        do j=1,npatches
+          print *, 'for off-diagonal, j = ', j
+          allocate(w_omp(lw))
+          allocate(tmatr_omp(100000))
 
           do i=1,npatches
-
 c
 c           ... (i,j), i index - target, j index - source
 c
-            if ( i .eq. j ) then
-c
-c             ... construct the diagonal (self interaction) blocks
-c
-              ii=ixyzs(1,i)
-              ipols=ixyzs(2,i)
-              call patchmatc_dd(i,ipols,i,ipols,
-     $            npatches,patchpnt,par1,par2,par3,par4,
-     $            norder,npols,us,vs,umatr,vmatr,
-     $            ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $            interact,par5,par6,par7,par8,
-     $            tmatr_omp,w_omp,lw,lused,ier)
-              call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,ii,ipols)
-            endif
 c            
 c           ... construct the off-diagonal blocks
 c
@@ -2020,13 +2012,50 @@ c
      $            norder,npols,us,vs,umatr,vmatr,
      $            ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
      $            interact,par5,par6,par7,par8,
-     $            tmatr_omp,w_omp,lw,lused,ier)
+     $            tmatr_omp, w_omp, lw,lused,ier)
               call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,jj,jpols)
             endif
 c      
           enddo
 c          
           deallocate(w_omp)
+          deallocate(tmatr_omp)
+        enddo
+C$OMP END PARALLEL DO
+c
+        print *, ' finished building off diagonal...'
+
+        
+        lrad = 1000000
+cccc        allocate(rad(lrad))
+        norder12 = 12
+        call radial_init(jer0, norder12, rad, lrad, lkeep)
+
+
+C$OMP PARALLEL DO DEFAULT(SHARED)
+C$OMP$PRIVATE(i,j,ii,ipols,tmatr_omp,lused,ier,w_omp)
+        do i=1,npatches
+          print *, 'building diagonal i = ', i
+          allocate(w_omp(lw))
+          allocate(tmatr_omp(100000))
+
+c
+c           ... (i,j), i index - target, j index - source
+c
+c             ... construct the diagonal (self interaction) blocks
+c
+          ii=ixyzs(1,i)
+          ipols=ixyzs(2,i)
+          call patchmatc_dd(i,ipols,i,ipols,
+     $        npatches,patchpnt,par1,par2,par3,par4,
+     $        norder, npols,us,vs,umatr,vmatr,
+     $        ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
+     $        interact,par5,par6,par7,par8,
+     $        tmatr_omp, w_omp, lw,lused,ier)
+          call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,ii,ipols)
+c
+          deallocate(w_omp)
+          deallocate(tmatr_omp)
         enddo
 C$OMP END PARALLEL DO
 c
@@ -2130,8 +2159,8 @@ c
         m=6
         eps=1d-6
 c
-cccc        m=12
-cccc        eps=1d-12
+        m=12
+        eps=1d-12
 c
 cccc        m=14
 cccc        eps=1d-14
@@ -2201,7 +2230,7 @@ c
 c
         subroutine patchmatc_dd(ipatch,ipols,jpatch,jpols,
      $     npatches,patchpnt,par1,par2,par3,par4,
-     $     norder,npols,us,vs,umatr,vmatr,
+     $     norder, npols,us,vs,umatr,vmatr,
      $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
      $     interact,par5,par6,par7,par8,
      $     tmatr,w,lw,lused,ier)
@@ -2212,6 +2241,7 @@ c       self-interaction
 c
         external patchpnt,interact
         dimension us(1),vs(1)
+        dimension rad(1000000)
         dimension xyz(3),dxyzduv(3,2)
         dimension xyznorm(3),xyztang1(3),xyztang2(3)
 c
@@ -2231,6 +2261,9 @@ c
 c       
         dimension vert1(2),vert2(2),vert3(2)
         dimension vert1a(2,3)
+
+ccc        double precision, allocatable :: rad(:)
+        
         external patchfun3
 c
 c
@@ -2293,54 +2326,42 @@ c
         iquadtype=1
         nrec=20
 c
-        iquadtype=2
-c
-        if( norder .eq. 0 ) iquadtype=3
-        if( norder .eq. 1 ) iquadtype=3
-c
-ccc        if( norder .eq. 2 ) iquadtype=3
-        if( norder .eq. 2 ) iquadtype=4
-c
-ccc        if( norder .eq. 3 ) iquadtype=3
-        if( norder .eq. 3 ) iquadtype=4
-c
-        if( norder .ge. 4 ) iquadtype=4
-c       
+
         iquadtype=4
 ccc        iquadtype=5
 ccc        iquadtype=6
 c
 c
-        if( iquadtype .eq. 3 ) then 
-c
-c       Vladimir Rokhlin's quadratures, for low orders 0,1,2
-c       Good for Hilbert kernels
-c
-        vert1(1)=0
-        vert1(2)=0
-        vert2(1)=1
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=1
-c
-        itype=2
-        inode=i
-        call triaselfquad
-     $     (ier,itype,norder,inode,xs,ys,ws,ns,x0,y0)
-c
-        do j=1,npols
-        coefs(j)=0
-        enddo
-c
-        do k=1,ns
-        call patchfun3(xs(k),ys(k),patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs(j)=coefs(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-
-        endif
+c$$$        if( iquadtype .eq. 3 ) then 
+c$$$c
+c$$$c       Vladimir Rokhlin's quadratures, for low orders 0,1,2
+c$$$c       Good for Hilbert kernels
+c$$$c
+c$$$        vert1(1)=0
+c$$$        vert1(2)=0
+c$$$        vert2(1)=1
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=1
+c$$$c
+c$$$        itype=2
+c$$$        inode=i
+c$$$        call triaselfquad
+c$$$     $     (ier,itype,norder,inode,xs,ys,ws,ns,x0,y0)
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs(j)=0
+c$$$        enddo
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(xs(k),ys(k),patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs(j)=coefs(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$
+c$$$        endif
 c
 c
         if( iquadtype .eq. 4 ) then 
@@ -2363,8 +2384,21 @@ c
 c
         x0=us(inode)
         y0=vs(inode)
-        call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
-c       
+cccc        call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
+
+cc        lrad = 500000
+cc        allocate(rad(lrad))
+cc        norder12 = 12
+cc        call radial_init(jer0, norder12, rad, lrad, lkeep)
+
+        lrad = 1000000
+cccc        allocate(rad(lrad))
+        norder12 = 12
+        call radial_init(jer0, norder12, rad, lrad, lkeep)
+        call self_quadrature_new(ier,rad,vert1a,x0,y0,dxyzduv,ns,
+     $      xs,ys,ws)
+
+c
 c        call prin2('x0=*',x0,1)
 c        call prin2('y0=*',y0,1)
 c        call prinf('ns=*',ns,1)
@@ -2390,379 +2424,380 @@ c
 
         endif
 c
-c
-        if( iquadtype .eq. 1 .or. iquadtype .eq. 2 ) then 
-c
-c       Adaptive integration
-c
-        x0=us(i)
-        y0=vs(i)       
-        ns=0
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=1
-c
-        if( iquadtype .eq. 1 )
-     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs1,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
-c
-        if( iquadtype .eq. 2 )
-     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs1,maxrec,numfunev,w)
-c
-ccc        call prinf('numfunev=*',numfunev,1)
-ccc        call prinf('info=*',info,2)
-c
-        ns=ns+numfunev
-c       
-        if( ier .eq. 8 ) then
-        write(*,*) 'maximum recursion depth of 200 has been reached'
-        write(*,*) 'abort'
-        stop
-        endif
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=1
-        vert3(1)=1
-        vert3(2)=0
-c
-c
-        if( iquadtype .eq. 1 )
-     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs2,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
-c
-        if( iquadtype .eq. 2 )
-     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs2,maxrec,numfunev,w)
-c
-ccc        call prinf('numfunev=*',numfunev,1)
-ccc        call prinf('info=*',info,2)
-c
-        ns=ns+numfunev
-c
-        if( ier .eq. 8 ) then
-        write(*,*) 'maximum recursion depth of 200 has been reached'
-        write(*,*) 'abort'
-        stop
-        endif
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=1
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=0
-c
-        if( iquadtype .eq. 1 )
-     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs3,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
-c
-        if( iquadtype .eq. 2 )
-     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs3,maxrec,numfunev,w)
-c
-ccc        call prinf('numfunev=*',numfunev,1)
-ccc        call prinf('info=*',info,2)
-c
-        ns=ns+numfunev
-c
-        if( ier .eq. 8 ) then
-        write(*,*) 'maximum recursion depth of 200 has been reached'
-        write(*,*) 'abort'
-        stop
-        endif
-c
-ccc        call prin2('x0=*',x0,1)
-ccc        call prin2('y0=*',y0,1)
-ccc        call prinf('ns=*',ns,1)
-c
-        do j=1,npols
-        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
-        enddo
-c
-        endif
-c
-c
-        if( iquadtype .eq. 5 ) then 
-c
-c       Gaussian tensor product rule, 3 sub-triangles
-c
-        m1=m*20
-c
-        inode=i
-        x0=us(inode)
-        y0=vs(inode)       
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=1
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do j=1,npols
-        coefs1(j)=0
-        enddo
-c
-        d=0
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c       
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=1
-        vert3(1)=1
-        vert3(2)=0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do j=1,npols
-        coefs2(j)=0
-        enddo
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=1
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do j=1,npols
-        coefs3(j)=0
-        enddo
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-c       ns_total
-        ns=ns*3
-c
-        call prin2('x0=*',x0,1)
-        call prin2('y0=*',y0,1)
-        call prinf('ns, total=*',ns,1)
-c
-        do j=1,npols
-        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
-        enddo
-c
-        endif
-c
-
-        if( iquadtype .eq. 6 ) then 
-c
-c       Gaussian tensor product rule, 6 sub-triangles
-c
-        m1=m*4
-c
-        inode=i
-        x0=us(inode)
-        y0=vs(inode)       
-c
-c
-        do j=1,npols
-        coefs1(j)=0
-        enddo
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=y0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        d=0
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=y0
-        vert3(1)=0
-        vert3(2)=1
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        d=0
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c       
-c
-        do j=1,npols
-        coefs2(j)=0
-        enddo
-c
-        d=x0+y0
-        alpha=x0/d
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=0
-        vert2(2)=1
-        vert3(1)=alpha
-        vert3(2)=1-alpha
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=alpha
-        vert2(2)=1-alpha
-        vert3(1)=1
-        vert3(2)=0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-c
-        do j=1,npols
-        coefs3(j)=0
-        enddo
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=1
-        vert2(2)=0
-        vert3(1)=x0
-        vert3(2)=0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-        vert1(1)=x0
-        vert1(2)=y0
-        vert2(1)=x0
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=0
-c
-        ifinit=1
-        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
-        ns=m*m1
-c
-        do k=1,ns
-        call patchfun3(rnodes(1,k),rnodes(2,k),
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-        do j=1,npols
-        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
-        enddo
-        enddo
-c
-c       ns_total
-        ns=ns*6
-c
-        call prin2('x0=*',x0,1)
-        call prin2('y0=*',y0,1)
-        call prinf('ns, total=*',ns,1)
-c
-        do j=1,npols
-        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
-        enddo
-c
-        endif
-c
+c$$$c
+c$$$        if( iquadtype .eq. 1 .or. iquadtype .eq. 2 ) then 
+c$$$c
+c$$$c       Adaptive integration
+c$$$c
+c$$$        x0=us(i)
+c$$$        y0=vs(i)       
+c$$$        ns=0
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=1
+c$$$c
+c$$$        if( iquadtype .eq. 1 )
+c$$$     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs1,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
+c$$$c
+c$$$        if( iquadtype .eq. 2 )
+c$$$     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs1,maxrec,numfunev,w)
+c$$$c
+c$$$ccc        call prinf('numfunev=*',numfunev,1)
+c$$$ccc        call prinf('info=*',info,2)
+c$$$c
+c$$$        ns=ns+numfunev
+c$$$c       
+c$$$        if( ier .eq. 8 ) then
+c$$$        write(*,*) 'maximum recursion depth of 200 has been reached'
+c$$$        write(*,*) 'abort'
+c$$$        stop
+c$$$        endif
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=1
+c$$$        vert3(1)=1
+c$$$        vert3(2)=0
+c$$$c
+c$$$c
+c$$$        if( iquadtype .eq. 1 )
+c$$$     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs2,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
+c$$$c
+c$$$        if( iquadtype .eq. 2 )
+c$$$     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs2,maxrec,numfunev,w)
+c$$$c
+c$$$ccc        call prinf('numfunev=*',numfunev,1)
+c$$$ccc        call prinf('info=*',info,2)
+c$$$c
+c$$$        ns=ns+numfunev
+c$$$c
+c$$$        if( ier .eq. 8 ) then
+c$$$        write(*,*) 'maximum recursion depth of 200 has been reached'
+c$$$        write(*,*) 'abort'
+c$$$        stop
+c$$$        endif
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=1
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=0
+c$$$c
+c$$$        if( iquadtype .eq. 1 )
+c$$$     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs3,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
+c$$$c
+c$$$        if( iquadtype .eq. 2 )
+c$$$     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,
+c$$$     $     m,eps,coefs3,maxrec,numfunev,w)
+c$$$c
+c$$$ccc        call prinf('numfunev=*',numfunev,1)
+c$$$ccc        call prinf('info=*',info,2)
+c$$$c
+c$$$        ns=ns+numfunev
+c$$$c
+c$$$        if( ier .eq. 8 ) then
+c$$$        write(*,*) 'maximum recursion depth of 200 has been reached'
+c$$$        write(*,*) 'abort'
+c$$$        stop
+c$$$        endif
+c$$$c
+c$$$ccc        call prin2('x0=*',x0,1)
+c$$$ccc        call prin2('y0=*',y0,1)
+c$$$ccc        call prinf('ns=*',ns,1)
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
+c$$$        enddo
+c$$$c
+c$$$        endif
+c
+c
+c$$$        if( iquadtype .eq. 5 ) then 
+c$$$c
+c$$$c       Gaussian tensor product rule, 3 sub-triangles
+c$$$c
+c$$$        m1=m*20
+c$$$c
+c$$$        inode=i
+c$$$        x0=us(inode)
+c$$$        y0=vs(inode)       
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=1
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs1(j)=0
+c$$$        enddo
+c$$$c
+c$$$        d=0
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c       
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=1
+c$$$        vert3(1)=1
+c$$$        vert3(2)=0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs2(j)=0
+c$$$        enddo
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=1
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs3(j)=0
+c$$$        enddo
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$c       ns_total
+c$$$        ns=ns*3
+c$$$c
+c$$$        call prin2('x0=*',x0,1)
+c$$$        call prin2('y0=*',y0,1)
+c$$$        call prinf('ns, total=*',ns,1)
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
+c$$$        enddo
+c$$$c
+c$$$        endif
+c$$$c
+c$$$
+c$$$        
+c$$$        if( iquadtype .eq. 6 ) then 
+c$$$c
+c$$$c       Gaussian tensor product rule, 6 sub-triangles
+c$$$c
+c$$$        m1=m*4
+c$$$c
+c$$$        inode=i
+c$$$        x0=us(inode)
+c$$$        y0=vs(inode)       
+c$$$c
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs1(j)=0
+c$$$        enddo
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=y0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        d=0
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=y0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=1
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        d=0
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs1(j)=coefs1(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c       
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs2(j)=0
+c$$$        enddo
+c$$$c
+c$$$        d=x0+y0
+c$$$        alpha=x0/d
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=0
+c$$$        vert2(2)=1
+c$$$        vert3(1)=alpha
+c$$$        vert3(2)=1-alpha
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=alpha
+c$$$        vert2(2)=1-alpha
+c$$$        vert3(1)=1
+c$$$        vert3(2)=0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs2(j)=coefs2(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs3(j)=0
+c$$$        enddo
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=1
+c$$$        vert2(2)=0
+c$$$        vert3(1)=x0
+c$$$        vert3(2)=0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$        vert1(1)=x0
+c$$$        vert1(2)=y0
+c$$$        vert2(1)=x0
+c$$$        vert2(2)=0
+c$$$        vert3(1)=0
+c$$$        vert3(2)=0
+c$$$c
+c$$$        ifinit=1
+c$$$        call triagauc2(m,m1,vert1,vert2,vert3,rnodes,ws,ifinit,w)
+c$$$        ns=m*m1
+c$$$c
+c$$$        do k=1,ns
+c$$$        call patchfun3(rnodes(1,k),rnodes(2,k),
+c$$$     $     patchpnt,par1,par2,par3,par4,
+c$$$     $     interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
+c$$$        do j=1,npols
+c$$$        coefs3(j)=coefs3(j)+ws(k)*cvals(j)
+c$$$        enddo
+c$$$        enddo
+c$$$c
+c$$$c       ns_total
+c$$$        ns=ns*6
+c$$$c
+c$$$        call prin2('x0=*',x0,1)
+c$$$        call prin2('y0=*',y0,1)
+c$$$        call prinf('ns, total=*',ns,1)
+c$$$c
+c$$$        do j=1,npols
+c$$$        coefs(j)=coefs1(j)+coefs2(j)+coefs3(j)
+c$$$        enddo
+c$$$c
+c$$$        endif
+c$$$c
 
 c
 ccc        call prin2('coefs=*',coefs,2*npols)

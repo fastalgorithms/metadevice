@@ -585,12 +585,13 @@ c
         subroutine legepls2(x,n,pols)
         implicit real *8 (a-h,o-z)
         dimension pols(*),pjcoefs1(2000),pjcoefs2(300)
-        save
-        data ifcalled/0/
+cccc        save
+cccc        data ifcalled/0/
 c
 c        if need be - initialize the arrays pjcoefs1, pjcoefs2
 c
-        if(ifcalled .eq. 1) goto 1100
+ccccif(ifcalled .eq. 1) goto 1100
+        ifcalled=0
 c
         done=1
         ninit=290
@@ -601,7 +602,7 @@ c
 c
  1050 continue
 c 
-        ifcalled=1
+cccc        ifcalled=1
  1100 continue
 
         pkm1=1

@@ -650,7 +650,7 @@ c
         complex *16 ceps,cmu,cimp,cjvec0(3)
 c
         data ima/(0.0d0,1.0d0)/
-        save
+cccc        save
 c
         cjvec0(1)=cjvec(1)*sqrt(cmu)
         cjvec0(2)=cjvec(2)*sqrt(cmu)
@@ -696,7 +696,7 @@ c
         complex *16 ceps,cmu,cimp,cmvec0(3)
 c
         data ima/(0.0d0,1.0d0)/
-        save
+cccc        save
 c
         cmvec0(1)=cmvec(1)*sqrt(ceps)
         cmvec0(2)=cmvec(2)*sqrt(ceps)
@@ -963,7 +963,7 @@ c
         complex *16 cd
         complex *16 ima
         data ima/(0.0d0,1.0d0)/
-        save
+cccc        save
 c
         call em3taeval
      $     (rk,center,ampole,bmpole,nterms,xyz,evec,hvec)

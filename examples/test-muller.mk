@@ -41,15 +41,24 @@ ifeq ($(HOST),linux-gfortran-openmp)
   #export OMP_STACKSIZE=4096M
 endif
 
+ifeq ($(HOST),linux-gfortran)
+  PROJECT = muller_linux
+  OBJSUF = o
+  FC = gfortran
+  FFLAGS = -O2 -w
+  LDFLAGS =
+  FLINK = gfortran -o $(PROJECT) -lblas -llapack
+endif
+
 ifeq ($(HOST),linux-intel-openmp)
   PROJECT = muller_linux_openmp
   OBJSUF = o
   FC = ifort
   FFLAGS = -O2 -qopenmp -w
   LDFLAGS =
-  FLINK = ifort -qopenmp -o $(PROJECT)
+  FLINK = ifort -qopenmp -o $(PROJECT) -mkl
   #ulimit -s unlimited
-  #export OMP_NUM_THREADS=32
+  #export OMP_NUM_THREADS=2
   #export OMP_STACKSIZE=4096M
 endif
 
@@ -59,7 +68,7 @@ ifeq ($(HOST),linux-intel)
   FC = ifort
   FFLAGS = -O2 -w
   LDFLAGS =
-  FLINK = ifort -o $(PROJECT)
+  FLINK = ifort -o $(PROJECT) -mkl
 endif
 
 
@@ -72,6 +81,7 @@ SRCDIR = ../src
 
 f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90 \
   $(SRCDIR)/lapack_wrap.f90
+
 
 fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \
@@ -93,6 +103,7 @@ fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/ctriaadap.f \
   $(SRCDIR)/triagauc.f \
   $(SRCDIR)/triasymq.f \
+  $(SRCDIR)/selfquad_new.f \
   $(SRCDIR)/selfquad.f \
   $(SRCDIR)/radial.f \
   $(SRCDIR)/print.f \

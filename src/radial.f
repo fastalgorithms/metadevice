@@ -79,6 +79,7 @@ c
  0100 format (I3.3)
  0200 format (D44.36)
 c
+      
         ier   = 0
         lkeep = 0
 c
@@ -1023,7 +1024,7 @@ c
         data pi    / 3.14159265358979323846264338327950288d0 /
         data nlege0 / -1 /
         data isinit / -1 /
-        save
+cccc        save
 c
 c       Return a quadrature for radially singular functions given on a 
 c       triangle with vertices

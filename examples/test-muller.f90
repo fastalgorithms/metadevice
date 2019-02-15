@@ -6,7 +6,7 @@ program test_muller
   dimension xyznorm(3),xyztang1(3),xyztang2(3)
   dimension g(2,2)
 
-  dimension usout(100),vsout(100),wsout(100)
+  dimension usout(100),vsout(100),wsout(100), uvs(2,100)
   dimension umatr(10000),vmatr(10000)
 
   allocatable :: verts(:,:),ifaces(:,:),iqfaces(:,:)
@@ -162,7 +162,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder = 4
+  norder = 1
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -389,6 +389,12 @@ program test_muller
   info(1)=1
   info(2)=1
   call prinf('tangential component: H(11)=*',id,1)
+
+  !do i =1,npols
+  !  uvs(1,i) = usout(i)
+  !  uvs(2,i) = vsout(i)
+  !end do
+  
   call patchmatc(npatches,rpatchpnt, &
       qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
