@@ -743,7 +743,7 @@ program test_muller
     call prin2('abs relative error, H=*',hvec2,6)
     call prin2('norm of abs relative err, H = *', herr, 1)
 
-    !stop
+    stop
 
 
 
