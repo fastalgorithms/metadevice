@@ -2329,11 +2329,6 @@ cccc        allocate(rad(lrad))
           call radial_init(jer0, norder12, rad, lrad, lkeep)
           call self_quadrature_new(ier,rad,vert1a,x0,y0,dxyzduv,ns,
      $        xs,ys,ws)
-
-c
-c        call prin2('x0=*',x0,1)
-c        call prin2('y0=*',y0,1)
-c        call prinf('ns=*',ns,1)
 c
 c          iw=200+inode
 c          do j=1,ns
