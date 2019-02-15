@@ -538,18 +538,18 @@ c
 c
 c       ... ellipsoid
 c
-        sx=1.0d0
-        sy=1.0d0
-        sz=1.0d0
+        sx=25.0d0
+        sy=50.0d0
+        sz=100.0d0
 c
         xyz(1)=xyz(1)*sx
         xyz(2)=xyz(2)*sy
         xyz(3)=xyz(3)*sz
 c
         do i=1,2
-        dxyzduv(1,i)=dxyzduv(1,i)*sx
-        dxyzduv(2,i)=dxyzduv(2,i)*sy
-        dxyzduv(3,i)=dxyzduv(3,i)*sz
+          dxyzduv(1,i)=dxyzduv(1,i)*sx
+          dxyzduv(2,i)=dxyzduv(2,i)*sy
+          dxyzduv(3,i)=dxyzduv(3,i)*sz
         enddo        
 c
         return
@@ -621,9 +621,9 @@ ccc        return
 c
 c       ... ellipsoid
 c
-        sx=1.0d0
-        sy=1.0d0
-        sz=1.2d0
+        sx=25.0d0
+        sy=12.5d0
+        sz=50d0
 c
         xyz(1)=xyz(1)*sx
         xyz(2)=xyz(2)*sy

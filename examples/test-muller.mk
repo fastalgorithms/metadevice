@@ -35,7 +35,7 @@ ifeq ($(HOST),linux-gfortran-openmp)
   FC = gfortran
   FFLAGS = -O2 -fopenmp -w
   LDFLAGS =
-  FLINK = gfortran -fopenmp -o $(PROJECT)
+  FLINK = gfortran -fopenmp -o $(PROJECT) -lblas -llapack
   #ulimit -s unlimited
   #export OMP_NUM_THREADS=32
   #export OMP_STACKSIZE=4096M
@@ -61,7 +61,8 @@ endif
 #
 SRCDIR = ../src
 
-f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90
+f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90 \
+  $(SRCDIR)/lapack_wrap.f90
 
 fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \
