@@ -88,6 +88,7 @@ c
         write(filename,0050) norder
 c
         iw = 101
+cccc        print *, 'loading ', trim(filename)
         open(iw,FILE=filename,STATUS='old',ERR=1000)
 c
 c       Grab the header data.        

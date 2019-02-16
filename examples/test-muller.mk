@@ -22,8 +22,17 @@ ifeq ($(HOST),macosx-gfortran-openmp)
   MODSUF = mod
   FC = gfortran-8
   FFLAGS = -O2 -fopenmp -w
-  LDFLAGS = -fopenmp -Wl,-stack_size,0x80000000
+  LDFLAGS = -fopenmp -Wl,-stack_size,0x80000000 -framework accelerate
   FLINK = gfortran-8 -o $(PROJECT)
+  export OMP_NUM_THREADS=1
+  export OMP_STACKSIZE=2048M
+endif
+
+ifeq ($(HOST),macosx-intel-openmp)
+  FC = ifort -c -w -qopenmp
+  FFLAGS = -O2
+  FLINK = ifort -w -mkl=parallel -qopenmp \
+    -Wl,-stack_size,0x40000000 -o $(PROJECT)
   export OMP_NUM_THREADS=4
   export OMP_STACKSIZE=2048M
 endif
@@ -79,9 +88,7 @@ endif
 #
 SRCDIR = ../src
 
-f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90 \
-  $(SRCDIR)/lapack_wrap.f90
-
+f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90 $(SRCDIR)/lapack_wrap.f90
 
 fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \

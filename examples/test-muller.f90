@@ -206,7 +206,7 @@ program test_muller
   if( igeom .eq. 1 ) then
     itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp = 5
+    noversamp = 4
   endif
 
   !c

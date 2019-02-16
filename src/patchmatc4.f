@@ -1991,7 +1991,7 @@ cccc        print *, 'inside patchmatc0 . . . '
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(i,j,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp)
         do j=1,npatches
-          print *, 'for off-diagonal, j = ', j
+cccc          print *, 'for off-diagonal, j = ', j
           allocate(w_omp(lw))
           allocate(tmatr_omp(100000))
 
@@ -2023,7 +2023,7 @@ c
         enddo
 C$OMP END PARALLEL DO
 c
-        print *, ' finished building off diagonal...'
+cccc        print *, ' finished building off diagonal...'
 
         
         lrad = 1000000
@@ -2033,15 +2033,14 @@ cccc        allocate(rad(lrad))
 
 
 C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(i,j,ii,ipols,tmatr_omp,lused,ier,w_omp)
+C$OMP$PRIVATE(i,ii,ipols,tmatr_omp,ier)
         do i=1,npatches
-          print *, 'building diagonal i = ', i
-          allocate(w_omp(lw))
+ccc          print *, 'building diagonal i = ', i
+cccc          allocate(w_omp(lw))
           allocate(tmatr_omp(100000))
 
 c
 c           ... (i,j), i index - target, j index - source
-c
 c             ... construct the diagonal (self interaction) blocks
 c
           ii=ixyzs(1,i)
@@ -2051,10 +2050,10 @@ c
      $        norder, npols,us,vs,umatr,vmatr,
      $        ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
      $        interact,par5,par6,par7,par8,
-     $        tmatr_omp, w_omp, lw,lused,ier)
-          call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,ii,ipols)
+     $        tmatr_omp, ier)
+          call patchsubcpy(npts, cmatr, tmatr_omp, ii, ipols, ii, ipols)
 c
-          deallocate(w_omp)
+cccc          deallocate(w_omp)
           deallocate(tmatr_omp)
         enddo
 C$OMP END PARALLEL DO
@@ -2233,7 +2232,8 @@ c
      $     norder, npols,us,vs,umatr,vmatr,
      $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
      $     interact,par5,par6,par7,par8,
-     $     tmatr,w,lw,lused,ier)
+     $     tmatr, ier)
+
         implicit real *8 (a-h,o-z)
 c
 c       ... generate the diagonal block of interaction matrix,
@@ -2251,7 +2251,6 @@ c
         dimension targinfo(12),info(20)
         dimension xpar1(20),xpar2(20)
 c
-        dimension w(1)
         complex *16 tmatr(ipols,jpols)
         complex *16 cvals(1000),coefs(1000)
         complex *16 coefs1(1000),coefs2(1000),coefs3(1000)
@@ -2262,43 +2261,37 @@ c
         dimension vert1(2),vert2(2),vert3(2)
         dimension vert1a(2,3)
 
-ccc        double precision, allocatable :: rad(:)
-        
         external patchfun3
-c
-c
+
         ii=ixyzs(1,ipatch)
-c
+
         if( ipols .ne. npols ) then
           write(*,*) 'ipols .ne. npols'
         endif
         if( jpols .ne. npols ) then
           write(*,*) 'jpols .ne. npols'
         endif
-c        
-        do 1400 i=1,npols
+        
+        do i=1,npols
 c
-c       ... on j-th triangle integrate all basis functions multiplied 
-c       by interaction function at the target point us(i),vs(i)
+c    ... on i-th triangle integrate all basis functions multiplied 
+c    by interaction function at the target point us(i),vs(i)
 c
-c       ... first, initialize function to be integrated
+c    ... first, initialize function to be integrated
 c
-        xpar1(1)=norder
-        xpar1(2)=npols
-        xpar1(3)=jpatch
+          xpar1(1)=norder
+          xpar1(2)=npols
+          xpar1(3)=jpatch
+
+          call patchinfo(xyzs(1,ii+i-1),xyznorms(1,ii+i-1),
+     $        xyztang1s(1,ii+i-1),xyztang2s(1,ii+i-1),targinfo)
+
+          do j=1,12
+            xpar2(j)=targinfo(j)
+          enddo
+
 c
-        call patchinfo(xyzs(1,ii+i-1),xyznorms(1,ii+i-1),
-     $     xyztang1s(1,ii+i-1),xyztang2s(1,ii+i-1),targinfo)
-c
-cccc        call prin2('targinfo=*',targinfo,12)
-        do j=1,12
-          xpar2(j)=targinfo(j)
-        enddo
-c
-        iquadtype=4
-        if( iquadtype .eq. 4 ) then 
-c
-c       Jim Bremer's quadratures
+c         Jim Bremer's quadratures
 c
           vert1a(1,1)=0
           vert1a(2,1)=0
@@ -2316,27 +2309,16 @@ c
 c
           x0=us(inode)
           y0=vs(inode)
-cccc        call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
+cccc     call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
 
-cc        lrad = 500000
-cc        allocate(rad(lrad))
-cc        norder12 = 12
-cc        call radial_init(jer0, norder12, rad, lrad, lkeep)
           
           lrad = 1000000
-cccc        allocate(rad(lrad))
+cccc     allocate(rad(lrad))
           norder12 = 12
           call radial_init(jer0, norder12, rad, lrad, lkeep)
           call self_quadrature_new(ier,rad,vert1a,x0,y0,dxyzduv,ns,
      $        xs,ys,ws)
-c
-c          iw=200+inode
-c          do j=1,ns
-c            write(iw,*) xs(j),ys(j),ws(j)
-c          enddo
-c          iw=300+inode
-c          write(iw,*) x0,y0
-c
+
           do j=1,npols
             coefs(j)=0
           enddo
@@ -2349,25 +2331,21 @@ c
             enddo
           enddo
 
-        endif
+
 c
-ccc        call prin2('coefs=*',coefs,2*npols)
+c...finally, convert the linear form of integral values to the
+cpointwise interation matrix, we will need umatr and vmatr for
+cthis operation
 c
-c       ... finally, convert the linear form of integral values to the
-c       pointwise interation matrix, we will need umatr and vmatr for
-c       this operation
+          call patchcoefs2cvals(npols, umatr, vmatr, coefs, cvals)
 c
-        call patchcoefs2cvals(npols,umatr,vmatr,coefs,cvals)
-c
-ccc        call prin2('cvals=*',cvals,2*npols)
-c
-        do 1200 j=1,npols
-        tmatr(i,j)=cvals(j)
- 1200   continue
-c
- 1400   continue        
-c
-c
+          do j=1,npols
+            tmatr(i,j)=cvals(j)
+          enddo
+          
+        enddo
+        
+
         return
         end
 c
