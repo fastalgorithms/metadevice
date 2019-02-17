@@ -163,7 +163,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder = 4
+  norder = 6
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -207,7 +207,7 @@ program test_muller
   if( igeom .eq. 1 ) then
     itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp = 4
+    noversamp = 5
   endif
 
   !c

@@ -75,9 +75,8 @@ ifeq ($(HOST),linux-intel-openmp)
   FFLAGS = -O2 -qopenmp -w
   LDFLAGS =
   FLINK = ifort -qopenmp -o $(PROJECT) -mkl
-  #ulimit -s unlimited
-  #export OMP_NUM_THREADS=2
-  #export OMP_STACKSIZE=4096M
+  export OMP_NUM_THREADS=32
+  export OMP_STACKSIZE=4096M
 endif
 
 ifeq ($(HOST),linux-intel)
