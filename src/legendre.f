@@ -418,7 +418,7 @@ c
         call lege0(n,x1,pol,der)
         else
         dx = x1-x0       
-        call legetayl(n,k,x0,dx,pol,der)
+        call legetayl_other(n,k,x0,dx,pol,der)
         endif
 c
 c       Newton iteration.
@@ -469,7 +469,7 @@ c
         end
 
 
-        subroutine legetayl(n,k,x,dx,pol,der)
+        subroutine legetayl_other(n,k,x,dx,pol,der)
         implicit double precision (a-h,o-z)
 c
 c       Evaluate the Legendre polynomial of order n using a Taylor

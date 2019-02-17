@@ -1,12 +1,12 @@
 
 
 ###HOST=linux-gfortran
-#HOST=macosx-gfortran
-#HOST=macosx-gfortran-openmp
+#HOST=osx-gfortran
+#HOST=osx-gfortran-openmp
 
 
-ifeq ($(HOST),macosx-gfortran)
-  PROJECT = muller_macosx
+ifeq ($(HOST),osx-gfortran)
+  PROJECT = muller_osx
   OBJSUF = o
   MODSUF = mod
   FC = gfortran-8
@@ -16,8 +16,8 @@ ifeq ($(HOST),macosx-gfortran)
   FLINK = gfortran-8 -o $(PROJECT)
 endif
 
-ifeq ($(HOST),macosx-gfortran-openmp)
-  PROJECT = muller_macosx_openmp
+ifeq ($(HOST),osx-gfortran-openmp)
+  PROJECT = muller_osx_openmp
   OBJSUF = o
   MODSUF = mod
   FC = gfortran-8
@@ -28,11 +28,20 @@ ifeq ($(HOST),macosx-gfortran-openmp)
   export OMP_STACKSIZE=2048M
 endif
 
-ifeq ($(HOST),macosx-intel-openmp)
+ifeq ($(HOST),osx-intel)
+  PROJECT = muller_osx
+  FC = ifort -c -w
+  FFLAGS = -O2
+  LDFLAGS = 
+  FLINK = ifort -w -mkl -o $(PROJECT)
+endif
+
+ifeq ($(HOST),osx-intel-openmp)
+  PROJECT = muller_osx_openmp
   FC = ifort -c -w -qopenmp
   FFLAGS = -O2
   FLINK = ifort -w -mkl=parallel -qopenmp \
-    -Wl,-stack_size,0x40000000 -o $(PROJECT)
+    -Wl,-stack_size,0x80000000 -o $(PROJECT)
   export OMP_NUM_THREADS=4
   export OMP_STACKSIZE=2048M
 endif
@@ -88,7 +97,10 @@ endif
 #
 SRCDIR = ../src
 
-f90srcs = test-muller.f90 $(SRCDIR)/xtri_plot.f90 $(SRCDIR)/lapack_wrap.f90
+f90srcs = test-muller.f90 \
+  $(SRCDIR)/xtri_plot.f90 \
+  $(SRCDIR)/lapack_wrap.f90 \
+  $(SRCDIR)/patchmatc.f90
 
 fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/atrirouts.f \

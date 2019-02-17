@@ -1,3 +1,6 @@
+C
+C (c) Jim Bremer, all rights reserved
+C
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c       This is the end of the debugging code and beginning of the 
@@ -76,10 +79,10 @@ c       table and a structure header describing the quadratures
 c
 c
  0050 format ("../data/quad/radquads",I2.2,".txt")
+cccc 0050 format ("../quads/radquads",I2.2,".txt")
  0100 format (I3.3)
  0200 format (D44.36)
 c
-      
         ier   = 0
         lkeep = 0
 c
@@ -87,8 +90,10 @@ c
 c
         write(filename,0050) norder
 c
+cccc        print *, filename
+cccc        stop
+        
         iw = 101
-cccc        print *, 'loading ', trim(filename)
         open(iw,FILE=filename,STATUS='old',ERR=1000)
 c
 c       Grab the header data.        
@@ -101,8 +106,8 @@ c
         read (iw,0200) (rs(1,j),rs(2,j),j=1,nr)
         read (iw,0200) (ts(1,j),ts(2,j),j=1,nt)
 c
-cccc        call prina("in radial_init, filename = *",filename,16)
-cccc        call prin2("in radial_init, rs = *",rs,2*nr)
+cccc        call prina("in radial_init, filename = *",filename,23)
+cccccall prin2("in radial_init, rs = *",rs,2*nr)
 cccc        call prin2("in radial_init, ts = *",ts,2*nt)
 c
 c       Fill out the header of the rad structure.
@@ -152,7 +157,9 @@ c
 c
 c       Construct the Legendre quadrature.
 c
-        call legequad(nlege,rad(ixslege),rad(iwhtslege))
+cccc        call legequad(nlege,rad(ixslege),rad(iwhtslege))
+        itype111 = 1
+        call legerts(itype111, nlege, rad(ixslege), rad(iwhtslege))
 c
 c       Copy the as and bs into the array.
 c
@@ -172,6 +179,7 @@ c       We arrive here on IO errors.
 c
  1000 continue
         ier = 128
+
         return
         end
 c
@@ -211,8 +219,10 @@ c
 c
  1200 continue
  1100 continue
-c
 
+c
+        return
+      
         end
 
 
@@ -1025,7 +1035,7 @@ c
         data pi    / 3.14159265358979323846264338327950288d0 /
         data nlege0 / -1 /
         data isinit / -1 /
-cccc        save
+        save
 c
 c       Return a quadrature for radially singular functions given on a 
 c       triangle with vertices
@@ -1068,7 +1078,9 @@ c
         endif
 c
         if (nlege .ne. nlege0) then
-        call legequad(nlege,xslege,whtslege)
+cccc    call legequad(nlege,xslege,whtslege)
+        itype = 1
+        call legerts(itype, nlege, xslege, whtslege)  
         nlege0 = nlege
         endif
 c
@@ -1097,6 +1109,29 @@ c
 c
 c
         end
+
+
+
+
+
+        subroutine mach_zero(zero_mach)
+        implicit double precision (a-h,o-z)
+c
+c       Approximate machine zero in some reasonable way.
+c
+        zero_mach=1
+        d = 1
+c
+ 1000 continue
+        if (d+zero_mach/2 .eq. d) goto 1100
+        zero_mach=zero_mach/2
+        goto 1000
+ 1100 continue
+
+        return
+        end
+
+
 
 
 
@@ -1196,7 +1231,9 @@ c       quadrature rule
 c
 c                                    
         nlege = ngauss
-        call legequad(nlege,xslege,whtslege)
+        itype = 1
+        call legerts(itype, nlege, xslege, whtslege)  
+cccc        call legequad(nlege,xslege,whtslege)
 c
         x1 = verts(1,1)
         y1 = verts(2,1)
@@ -1586,8 +1623,13 @@ c   (xs,ys) - the location of the nodes in the resulting quadrature
 c       rule
 c   whts - the weights of the resulting quadrature rule
 c
-        call legequad1(nlege1,xslege1,whtslege1)
-        call legequad2(nlege2,xslege2,whtslege2)
+cccc        call legequad1(nlege1,xslege1,whtslege1)
+cccc        call legequad2(nlege2,xslege2,whtslege2)
+
+        itype = 1
+        call legerts(itype, nlege1, xslege1, whtslege1)  
+        call legerts(itype, nlege2, xslege2, whtslege2)  
+
 c
         nquad = 0
 c

@@ -113,12 +113,13 @@ program test_muller
   pi=4*atan(done)
 
   !
-  ! . . . override the parameters if need be
+  ! set some parameters:
+  !   wavelength - wavelength, obvious
+  !   ceps - electric permittivities
+  !   cmus - magnetic permeabilities
+  !   scale_geo - stretching factors
+  !   shift_geo - translation vector
   !
-  ! rk=1.0d0
-  ! rk=1.0d0*pi
-  ! rk=1.0d0*pi*2
-
   ! scale_geo(1)=25d0/2
   ! scale_geo(2)=25d0/2
   ! scale_geo(3)=75d0/2
@@ -152,7 +153,7 @@ program test_muller
   call prinf('numit=*',numit,1)
 
   call prinf('============================*',i,0)
-
+  
   rk=omega*sqrt(cmus(1))*sqrt(ceps(1))
   call prin2('rk=*',rk,2)
 
@@ -206,7 +207,7 @@ program test_muller
   if( igeom .eq. 1 ) then
     itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp = 4
+    noversamp = 3
   endif
 
   !c
@@ -390,16 +391,11 @@ program test_muller
   info(2)=1
   call prinf('tangential component: H(11)=*',id,1)
 
-  !do i =1,npols
-  !  uvs(1,i) = usout(i)
-  !  uvs(2,i) = vsout(i)
-  !end do
-  
   call patchmatc(npatches,rpatchpnt, &
       qtriainfo,epatchpnt,ipatchinfo,refineinfo, &
       norder,npols,usout,vsout,umatr,vmatr, &
       ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts, &
-      eminter3n,rk_id,info,par7,par8, &
+      eminter3n, rk_id, info, par7, par8, &
       cmatr0,w,lw,lused,ier)
 
   call patchdiag(cmatr0,npts,+2*pi)

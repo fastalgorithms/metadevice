@@ -1923,36 +1923,31 @@ c
 c       ... initialize self quadrature tables
 c
 ccc        norder0=norder
-        norder0=12
-        if( norder0 .eq. 4 .or. norder0 .eq. 8 .or. 
-     $      norder0 .eq. 12 .or. norder0 .eq. 16 .or. 
-     $      norder0 .eq. 20 ) then
-          call self_quadrature_init(ier0,norder0)
-        else
-          write(*,*) 'norder0 =', norder0
-          write(*,*) 'abort, norder0 must be 4, 8, 12, 16, or 20'
-          stop
-        endif
-
 c
 c       ... allocate work arrays
 c        
 c       ... max 300 points per patch
 c
-        nmax=300
+cc        nmax=300
 c
-        itmatr=1
-        ltmatr=2*nmax*nmax
+cc        itmatr=1
+cc        ltmatr=2*nmax*nmax
 c
-        lused7=ltmatr
+cc        lused7=ltmatr
 c
 cccc        print *, 'calling patchmatc0 ... '
         
+cc        call patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
+cc     $     norder,npols,us,vs,umatr,vmatr,
+cc     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
+cc     $     interact,par5,par6,par7,par8,
+cc     $     cmatr,w(itmatr),w(1+lused7),lw-lused7,lused8,ier)        
+c
         call patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
      $     norder,npols,us,vs,umatr,vmatr,
      $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
      $     interact,par5,par6,par7,par8,
-     $     cmatr,w(itmatr),w(1+lused7),lw-lused7,lused8,ier)        
+     $     cmatr, ier)        
 c
         lused=lused7+lused8
 c
@@ -1963,103 +1958,6 @@ c
 c
 c
 c
-        subroutine patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
-     $     norder,npols,us,vs,umatr,vmatr,
-     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $     interact,par5,par6,par7,par8,
-     $     cmatr,tmatr,w,lw,lused,ier)
-        implicit real *8 (a-h,o-z)
-        external patchpnt,interact
-        dimension us(1),vs(1)
-        dimension xyz(3),dxyzduv(3,2)
-        dimension xyznorm(3),xyztang1(3),xyztang2(3)
-c
-        dimension ixyzs(2,1),xyzs(3,1),xyznorms(3,1)
-        dimension xyztang1s(3,1),xyztang2s(3,1)
-c
-        dimension w(1)
-        double precision :: rad(1000000)
-        double complex, allocatable :: w_omp(:), tmatr_omp(:)
-        double complex, allocatable :: w2_omp(:), tmatr2_omp(:)
-        complex *16 tmatr(1)
-        complex *16 cmatr(npts,npts)
-c
-cccc        print *, 'inside patchmatc0 . . . '
-
-        lw = 2000000
-        
-C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(i,j,ii,ipols,jj,jpols,tmatr_omp,lused,ier,w_omp)
-        do j=1,npatches
-cccc          print *, 'for off-diagonal, j = ', j
-          allocate(w_omp(lw))
-          allocate(tmatr_omp(100000))
-
-          do i=1,npatches
-c
-c           ... (i,j), i index - target, j index - source
-c
-c            
-c           ... construct the off-diagonal blocks
-c
-            if (i .ne. j) then
-              ii=ixyzs(1,i)
-              jj=ixyzs(1,j)
-              ipols=ixyzs(2,i)
-              jpols=ixyzs(2,j)
-              call patchmatc_od(i,ipols,j,jpols,
-     $            npatches,patchpnt,par1,par2,par3,par4,
-     $            norder,npols,us,vs,umatr,vmatr,
-     $            ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $            interact,par5,par6,par7,par8,
-     $            tmatr_omp, w_omp, lw,lused,ier)
-              call patchsubcpy(npts,cmatr,tmatr_omp,ii,ipols,jj,jpols)
-            endif
-c      
-          enddo
-c          
-          deallocate(w_omp)
-          deallocate(tmatr_omp)
-        enddo
-C$OMP END PARALLEL DO
-c
-cccc        print *, ' finished building off diagonal...'
-
-        
-        lrad = 1000000
-cccc        allocate(rad(lrad))
-        norder12 = 12
-        call radial_init(jer0, norder12, rad, lrad, lkeep)
-
-
-C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(i,ii,ipols,tmatr_omp,ier)
-        do i=1,npatches
-ccc          print *, 'building diagonal i = ', i
-cccc          allocate(w_omp(lw))
-          allocate(tmatr_omp(100000))
-
-c
-c           ... (i,j), i index - target, j index - source
-c             ... construct the diagonal (self interaction) blocks
-c
-          ii=ixyzs(1,i)
-          ipols=ixyzs(2,i)
-          call patchmatc_dd(i,ipols,i,ipols,
-     $        npatches,patchpnt,par1,par2,par3,par4,
-     $        norder, npols,us,vs,umatr,vmatr,
-     $        ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $        interact,par5,par6,par7,par8,
-     $        tmatr_omp, ier)
-          call patchsubcpy(npts, cmatr, tmatr_omp, ii, ipols, ii, ipols)
-c
-cccc          deallocate(w_omp)
-          deallocate(tmatr_omp)
-        enddo
-C$OMP END PARALLEL DO
-c
-        return
-        end
 c
 c
 c
@@ -2227,127 +2125,6 @@ c
 c
 c
 c
-        subroutine patchmatc_dd(ipatch,ipols,jpatch,jpols,
-     $     npatches,patchpnt,par1,par2,par3,par4,
-     $     norder, npols,us,vs,umatr,vmatr,
-     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $     interact,par5,par6,par7,par8,
-     $     tmatr, ier)
-
-        implicit real *8 (a-h,o-z)
-c
-c       ... generate the diagonal block of interaction matrix,
-c       self-interaction
-c
-        external patchpnt,interact
-        dimension us(1),vs(1)
-        dimension rad(1000000)
-        dimension xyz(3),dxyzduv(3,2)
-        dimension xyznorm(3),xyztang1(3),xyztang2(3)
-c
-        dimension ixyzs(2,1),xyzs(3,1),xyznorms(3,1)
-        dimension xyztang1s(3,1),xyztang2s(3,1)
-c
-        dimension targinfo(12),info(20)
-        dimension xpar1(20),xpar2(20)
-c
-        complex *16 tmatr(ipols,jpols)
-        complex *16 cvals(1000),coefs(1000)
-        complex *16 coefs1(1000),coefs2(1000),coefs3(1000)
-c
-        dimension xs(10000),ys(10000),ws(10000)
-        dimension rnodes(2,10000)
-c       
-        dimension vert1(2),vert2(2),vert3(2)
-        dimension vert1a(2,3)
-
-        external patchfun3
-
-        ii=ixyzs(1,ipatch)
-
-        if( ipols .ne. npols ) then
-          write(*,*) 'ipols .ne. npols'
-        endif
-        if( jpols .ne. npols ) then
-          write(*,*) 'jpols .ne. npols'
-        endif
-        
-        do i=1,npols
-c
-c    ... on i-th triangle integrate all basis functions multiplied 
-c    by interaction function at the target point us(i),vs(i)
-c
-c    ... first, initialize function to be integrated
-c
-          xpar1(1)=norder
-          xpar1(2)=npols
-          xpar1(3)=jpatch
-
-          call patchinfo(xyzs(1,ii+i-1),xyznorms(1,ii+i-1),
-     $        xyztang1s(1,ii+i-1),xyztang2s(1,ii+i-1),targinfo)
-
-          do j=1,12
-            xpar2(j)=targinfo(j)
-          enddo
-
-c
-c         Jim Bremer's quadratures
-c
-          vert1a(1,1)=0
-          vert1a(2,1)=0
-          vert1a(1,2)=1
-          vert1a(2,2)=0
-          vert1a(1,3)=0
-          vert1a(2,3)=1
-c
-          inode=i
-          u=us(inode)
-          v=vs(inode)
-          call patchgeo(patchpnt,jpatch,u,v,
-     $        par1,par2,par3,par4,
-     $        xyz,dxyzduv,ds,xyznorm,xyztang1,xyztang2)
-c
-          x0=us(inode)
-          y0=vs(inode)
-cccc     call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
-
-          
-          lrad = 1000000
-cccc     allocate(rad(lrad))
-          norder12 = 12
-          call radial_init(jer0, norder12, rad, lrad, lkeep)
-          call self_quadrature_new(ier,rad,vert1a,x0,y0,dxyzduv,ns,
-     $        xs,ys,ws)
-
-          do j=1,npols
-            coefs(j)=0
-          enddo
-c
-          do k=1,ns
-            call patchfun3(xs(k),ys(k),patchpnt,par1,par2,par3,par4,
-     $          interact,par5,par6,par7,par8,xpar1,xpar2,cvals)
-            do j=1,npols
-              coefs(j)=coefs(j)+ws(k)*cvals(j)
-            enddo
-          enddo
-
-
-c
-c...finally, convert the linear form of integral values to the
-cpointwise interation matrix, we will need umatr and vmatr for
-cthis operation
-c
-          call patchcoefs2cvals(npols, umatr, vmatr, coefs, cvals)
-c
-          do j=1,npols
-            tmatr(i,j)=cvals(j)
-          enddo
-          
-        enddo
-        
-
-        return
-        end
 c
 c
 c
@@ -2355,8 +2132,8 @@ c
 c
         subroutine patchcoefs2cvals(npols,umatr,vmatr,coefs,cvals)
         implicit real *8 (a-h,o-z)
-        dimension umatr(npols,npols),vmatr(npols,npols)
-        complex *16 cvals(1000),coefs(1000),cd
+        dimension umatr(npols,npols), vmatr(npols,npols)
+        complex *16 cvals(1),coefs(1), cd
 c
         do 1400 i=1,npols
         cd=0
@@ -2366,6 +2143,8 @@ c
         cvals(i)=cd
  1400   continue
 c
+        
+        
         return
         end
 c

@@ -33,31 +33,6 @@ c
 c
 c
 c
-        subroutine mach_zero(zero_mach)
-        implicit double precision (a-h,o-z)
-        data eps0 / -1.0d0 /
-        save
-c
-c       Only perform the computation once and save the results.
-c
-        if (eps0 .ne. -1.0d0) then
-        zero_mach=eps0
-        return
-        endif
-c
-c       Approximate machine zero in some reasonable way.
-c
-        zero_mach=1
-        d = 1
-c
- 1000 continue
-        if (d+zero_mach/2 .eq. d) goto 1100
-        zero_mach=zero_mach/2
-        goto 1000
- 1100 continue
-        return
-        
-        end
 
 
         subroutine elapsed(t)
