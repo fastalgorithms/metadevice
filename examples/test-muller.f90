@@ -163,7 +163,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder = 1
+  norder = 4
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -207,7 +207,7 @@ program test_muller
   if( igeom .eq. 1 ) then
     itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp = 3
+    noversamp = 4
   endif
 
   !c
@@ -355,11 +355,11 @@ program test_muller
   ! ... call patchmatc discretizer
   !
   !
-  ! note that the order of the self-quadrature is set by the paraemter
-  ! norder0 in the subroutine patchmatc in the file patchmatc4.f, and
+  ! note that the order of the self-quadrature is set by the parameter
+  ! nquad in the subroutine patchmatc0 in the file patchmatc.f90, and
   ! is not accessible outside of that routine
   !
-  ! furthermore, the order and precision of the adpative discretizer
+  ! furthermore, the order and precision of the adaptive discretizer
   ! for the off-diagonal blocks is set by m and eps in the subroutine
   ! patchmatc_od in the file patchmatc4.f
   !

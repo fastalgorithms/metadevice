@@ -1920,28 +1920,8 @@ c
 c
         ier=0
 c
-c       ... initialize self quadrature tables
-c
-ccc        norder0=norder
-c
-c       ... allocate work arrays
-c        
-c       ... max 300 points per patch
-c
-cc        nmax=300
-c
-cc        itmatr=1
-cc        ltmatr=2*nmax*nmax
-c
-cc        lused7=ltmatr
 c
 cccc        print *, 'calling patchmatc0 ... '
-        
-cc        call patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
-cc     $     norder,npols,us,vs,umatr,vmatr,
-cc     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-cc     $     interact,par5,par6,par7,par8,
-cc     $     cmatr,w(itmatr),w(1+lused7),lw-lused7,lused8,ier)        
 c
         call patchmatc0(npatches,patchpnt,par1,par2,par3,par4,
      $     norder,npols,us,vs,umatr,vmatr,
@@ -1953,11 +1933,6 @@ c
 c
         return
         end
-c
-c
-c
-c
-c
 c
 c
 c
@@ -1983,143 +1958,6 @@ c
 c
 c
 c
-        subroutine patchmatc_od(ipatch,ipols,jpatch,jpols,
-     $     npatches,patchpnt,par1,par2,par3,par4,
-     $     norder,npols,us,vs,umatr,vmatr,
-     $     ixyzs,xyzs,xyznorms,xyztang1s,xyztang2s,npts,
-     $     interact,par5,par6,par7,par8,
-     $     tmatr,w,lw,lused,ier)
-        implicit real *8 (a-h,o-z)
-c
-c       ... generate the off-diagonal block of interaction matrix
-c
-        external patchpnt,interact
-        dimension us(1),vs(1)
-        dimension xyz(3),dxyzduv(3,2)
-        dimension xyznorm(3),xyztang1(3),xyztang2(3)
-c
-        dimension ixyzs(2,1),xyzs(3,1),xyznorms(3,1)
-        dimension xyztang1s(3,1),xyztang2s(3,1)
-c
-        dimension targinfo(12),info(20)
-        dimension xpar1(20),xpar2(20)
-c
-        dimension w(1)
-        complex *16 tmatr(ipols,jpols)
-        complex *16 cvals(1000),coefs(1000)
-c       
-        dimension vert1(2),vert2(2),vert3(2)
-        external patchfun3
-c
-ccc        write(*,*) '.', ipatch, ipols, jpatch, jpols
-c
-        ii=ixyzs(1,ipatch)
-        jj=ixyzs(1,jpatch)
-c
-ccc        write(*,*) '.', ii, jj
-c
-c       ... construct one off-diagonal block via collocation
-c       
-c       ... (i,j), i index - target, j index - source
-c
-        if( ipols .ne. npols ) then
-        write(*,*) 'ipols .ne. npols'
-        endif
-        if( jpols .ne. npols ) then
-        write(*,*) 'jpols .ne. npols'
-        endif
-c        
-        do 1400 i=1,npols
-c
-c       ... on j-th triangle integrate all basis functions multiplied 
-c       by interaction function at the target point us(i),vs(i)
-c
-c       ... first, initialize function to be integrated
-c
-        xpar1(1)=norder
-        xpar1(2)=npols
-        xpar1(3)=jpatch
-c
-        call patchinfo(xyzs(1,ii+i-1),xyznorms(1,ii+i-1),
-     $     xyztang1s(1,ii+i-1),xyztang2s(1,ii+i-1),targinfo)
-c
-cccc        call prin2('targinfo=*',targinfo,12)
-        do j=1,12
-        xpar2(j)=targinfo(j)
-        enddo
-c
-c       ... then, call adaptive gaussian integration routine 
-c       
-c        m=3
-c        eps=1d-3
-c
-        m=6
-        eps=1d-6
-c
-        m=12
-        eps=1d-12
-c
-cccc        m=14
-cccc        eps=1d-14
-c
-c        m=16
-c        eps=1d-16
-c
-c        m=24
-c        eps=1d-16
-c
-        iquadtype=1
-        nrec=20
-c
-c        iquadtype=2
-c
-        vert1(1)=0
-        vert1(2)=0
-        vert2(1)=1
-        vert2(2)=0
-        vert3(1)=0
-        vert3(2)=1
-c
-        if( iquadtype .eq. 1 )        
-     $     call c28triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs,maxrec,numfunev,w,nrec,jpatch,targinfo,info)
-c
-        if( iquadtype .eq. 2 )
-     $     call c29triaadam(ier,vert1,vert2,vert3,patchfun3,npols,
-     $     patchpnt,par1,par2,par3,par4,
-     $     interact,par5,par6,par7,par8,xpar1,xpar2,
-     $     m,eps,coefs,maxrec,numfunev,w)
-c       
-        if( ier .eq. 8 ) then
-        write(*,*) 'maximum recursion depth of 200 has been reached'
-        write(*,*) 'abort'
-        stop
-        endif
-c
-ccc        call prinf('numfunev=*',numfunev,1)
-ccc        call prinf('info=*',info,2)
-ccc        call prin2('coefs=*',coefs,2*npols)
-c
-c
-c       ... finally, convert the linear form of integral values to the
-c       pointwise interation matrix, we will need umatr and vmatr for
-c       this operation
-c
-        call patchcoefs2cvals(npols,umatr,vmatr,coefs,cvals)
-c
-ccc        call prin2('cvals=*',cvals,2*npols)
-c
-        do 1200 j=1,npols
-        tmatr(i,j)=cvals(j)
- 1200   continue
-c
- 1400   continue        
-c
-c
-        return
-        end
 c
 c
 c
