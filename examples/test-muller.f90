@@ -85,29 +85,27 @@ program test_muller
   ! call getarg(1,config)
   ! call prina('config file =*',config,78)
 
-  ir = 10
+  !ir = 10
   !open(unit=ir,file=config)
-  open(unit=ir, file='config_muller.txt')
+  !open(unit=ir, file='config_muller.txt')
 
-  read(ir,*) igeom
-  igeom = 1
+  !read(ir,*) igeom
+  !igeom = 1
   
-  read(ir,'(a)') filename_geo
-  filename_geo=trim(adjustl(filename_geo))
-  call prina('filename_geo=*',filename_geo,78)
+  !read(ir,'(a)') filename_geo
+  !filename_geo=trim(adjustl(filename_geo))
+  !call prina('filename_geo=*',filename_geo,78)
 
-  read(ir,*) scale_geo(1), scale_geo(2), scale_geo(3),  &
-      shift_geo(1), shift_geo(2), shift_geo(3)
+  !read(ir,*) scale_geo(1), scale_geo(2), scale_geo(3),  &
+  !    shift_geo(1), shift_geo(2), shift_geo(3)
 
-  read(ir,*) radius
-  read(ir,*) wavelength, dreal_n, dimag_n
-  read(ir,*) nterms
-  read(ir,*) itype_solve, eps, numit
-        
-  read(ir,*) filename_out        
-  filename_out=trim(adjustl(filename_out))
-  call prina('filename_out=*',filename_out,78)
-  
+  !read(ir,*) radius
+  !read(ir,*) wavelength, dreal_n, dimag_n
+  !read(ir,*) nterms
+  !read(ir,*) itype_solve, eps, numit     
+
+  !read(ir,*) filename_out
+  !close(ir)
 
   done=1
   pi=4*atan(done)
@@ -119,22 +117,31 @@ program test_muller
   !   cmus - magnetic permeabilities
   !   scale_geo - stretching factors
   !   shift_geo - translation vector
+  !   radius - size of bounding sphere for subsequent ampole,bmpole
+  !       transform
   !
-  ! scale_geo(1)=25d0/2
-  ! scale_geo(2)=25d0/2
-  ! scale_geo(3)=75d0/2
-  ! shift_geo(1)=0
-  ! shift_geo(2)=0
-  ! shift_geo(3)=0
 
-  ! radius=60d0
+  scale_geo(1) = 25d0
+  scale_geo(2) = 25d0/2
+  scale_geo(3) = 50d0
+  shift_geo(1) = 0
+  shift_geo(2) = 0
+  shift_geo(3) = 0
+  
+  radius=60d0
 
-  ! wavelength = 1000d0
-  ! nterms=3
-
+  wavelength = 1000d0
+  nterms=3
+  eps = 1.0d-10
+  numit = 40
+  
   omega=(2*pi)/wavelength
+
   ceps(1)=1
   cmus(1)=1
+
+  dreal_n = 0.2283d0
+  dimag_n = 6.47d0
   ceps(2)=(dreal_n+ima*dimag_n)**2
   cmus(2)=1
 
@@ -148,7 +155,6 @@ program test_muller
   call prin2('scale_geo=*',scale_geo,3)
   call prin2('shift_geo=*',shift_geo,3)
   call prinf('nterms=*',nterms,1)
-  call prinf('itype_solve=*',itype_solve,1)
   call prin2('eps=*',eps,1)
   call prinf('numit=*',numit,1)
 
@@ -163,7 +169,7 @@ program test_muller
   ! unknowns per triangle)
   !
   itype=1
-  norder = 6
+  norder = 3
   call ortho2siexps(itype,norder,npols,usout,vsout, &
       umatr,vmatr,wsout)
 
@@ -198,16 +204,16 @@ program test_muller
   allocate( ipatchinfo(max_ref_tri), refineinfo(4,max_ref_tri) )
 
 
-  !cccc        igeom = 3
+  igeom = 1
   call prinf('igeom=*',igeom,1)
-  !c
-  !c
-  !c       ... compute a triangulation exactly
-  !c
+
+  !
+  ! ... compute a triangulation exactly
+  !
   if( igeom .eq. 1 ) then
     itype = 4
     call rsolid(itype,verts,nverts,ifaces,nfaces)
-    noversamp = 5
+    noversamp = 4
   endif
 
   !c
@@ -779,6 +785,10 @@ program test_muller
   ! . . . call Muller solver for multiple incoming fields and generate
   !    the corresponding scattering matrix acting on coefficients
   !
+
+  filename_out = 'scatmatr_muller.txt'
+  filename_out = trim(adjustl(filename_out))
+  call prina('filename_out = *',filename_out,78)
 
   open(unit=72,file=filename_out)
 
