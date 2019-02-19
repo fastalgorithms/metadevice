@@ -207,38 +207,12 @@ subroutine patchmatc_dd(ipatch,ipols,jpatch,jpols,&
         par1,par2,par3,par4, &
         xyz,dxyzduv,ds,xyznorm,xyztang1,xyztang2)
 
-    !print *, 'dxyzduv(1,1) = ', dxyzduv(1,1)
-    !print *, 'dxyzduv(2,1) = ', dxyzduv(2,1)
-    !print *, 'dxyzduv(3,1) = ', dxyzduv(3,1)
-    !print *, 'dxyzduv(1,2) = ', dxyzduv(1,2)
-    !print *, 'dxyzduv(2,2) = ', dxyzduv(2,2)
-    !print *, 'dxyzduv(3,2) = ', dxyzduv(3,2)
-
     x0=us(i)
     y0=vs(i)
-    !   ! call self_quadrature(ier,vert1a,x0,y0,dxyzduv,ns,xs,ys,ws)
     call self_quadrature_new(ier, rad, vert1a, x0, y0, dxyzduv, ns, &
         xs,ys,ws)
     !print *, 'after self_quad_new, ier = ', ier
 
-    
-    !print *, 'ns = ', ns
-    !print *, 'xs = '
-    !do j=1,ns
-      !print *, xs(j)
-    !end do
-    
-    !print *, 'ys = '
-    !do j=1,ns
-      !print *, ys(j)
-    !end do
-    
-    !print *, 'ws = '
-    !do j=1,ns
-      !print *, ws(j)
-    !end do
-
-    !print *, 'npols = ', npols
     do j=1,npols
       coefs(j)=0
     enddo
