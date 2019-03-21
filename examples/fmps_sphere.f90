@@ -1,37 +1,35 @@
 program fmps_sphere
 
   implicit double precision (a-h,o-z)
-  ! double complex :: kvec(3), epol(3)
 
-  ! double precision, allocatable :: rnodes(:,:), whts(:)
-  ! double precision, allocatable :: tgts(:,:), outgt(:,:)
+  !, outgt(:,:)
 
   ! double complex, allocatable :: ceps(:), cmu(:), zk(:)
   ! double complex, allocatable :: eveci(:,:), hveci(:,:), &
   !     evect(:,:), hvect(:,:)
-  ! !       double complex, allocatable :: evecsi(:,:), hvecsi(:,:)
-  ! double complex, allocatable :: evec1(:,:), hvec1(:,:)
   ! double complex, allocatable :: pynt(:,:), pyns(:,:)
 
-  integer, parameter :: seed = 86456
-
   double precision, allocatable :: centers(:,:), radius(:), angles(:)
+  double precision, allocatable :: rnodes(:,:), whts(:)
+  double precision, allocatable :: targs(:,:)
 
   double complex :: ceps0, cmu0, zk0
+  double complex :: kvec(3), epol(3)
   double complex, parameter :: ima = (0,1)
   double complex, allocatable :: rmatr(:,:)
+  double complex, allocatable :: evec1(:,:), hvec1(:,:)
+  double complex, allocatable :: aimpole(:,:,:), bimpole(:,:,:)
+  double complex, allocatable :: aompole(:,:,:), bompole(:,:,:)
+  double complex, allocatable :: ampvec(:,:), bmpvec(:,:)
+  double complex, allocatable :: rhs(:), sol(:), abvec(:)
 
   character *256 :: scatfile       
 
-  ! double complex, allocatable :: aimpole(:,:,:), bimpole(:,:,:), &
-  !     aompole(:,:,:), bompole(:,:,:)
-  ! double complex, allocatable :: ampvec(:,:), bmpvec(:,:)
   ! !       double complex, allocatable :: raa(:,:), rab(:,:), & 
   ! !                           rba(:,:), rbb(:,:)
   ! double complex, allocatable :: ampout(:,:), bmpout(:,:), & 
-  !     abvec(:), x(:),y(:)
+  !     x(:),y(:)
 
-  ! double complex, allocatable :: rhs(:), sol(:), tmp(:)
   ! double precision, allocatable :: errs(:)
 
 
@@ -109,104 +107,100 @@ program fmps_sphere
   call prin2('centers = *', centers, 3*nspheres)
   
   ! set some random angles of rotation
-  call srand(seed)
   do i=1,nspheres
-   print *, 'rand = ', rand(0)
+    angles(i) = acos(cos(1.34d0*done*i**4))
   end do
 
   call prin2('angles = *', angles, nspheres)
   
-  stop
+  
+  !
+  ! generate quadrature nodes on the sphere for computing
+  ! coefficients in spherical harmonic expansions
+  !
+  itype = 1
+  nquad = nterms
+  nphi = 2*nquad+1
+  ntheta = nquad+1
+
+  nnodes = nphi*ntheta
+  allocate(rnodes(3,nnodes))
+  allocate(whts(nnodes))
+  call e3fgrid(itype,nterms,nphi,ntheta,rnodes,whts,nnodes)
 
 
+  call prin2('quad nodes = *', rnodes, 3*nnodes)
+  call prin2('quad whts = *', whts, nnodes)
+
+  
+  !
+  ! compute the local expansions for an incoming planewave, one
+  ! inclusion at a time
+  !
+  !
+  allocate(evec1(3,nnodes))
+  allocate(hvec1(3,nnodes))
+  allocate(targs(3,nnodes))
+
+  allocate(aimpole(0:nterms,-nterms:nterms,nspheres))
+  allocate(bimpole(0:nterms,-nterms:nterms,nspheres))
+  allocate(aompole(0:nterms,-nterms:nterms,nspheres))
+  allocate(bompole(0:nterms,-nterms:nterms,nspheres))
+
+  allocate( ampvec(0:nterms,-nterms:nterms) )
+  allocate( bmpvec(0:nterms,-nterms:nterms) )
+
+  !
+  ! setup parameters for the planewave
+  !
+  do i=1,3
+    kvec(i) = 0
+    epol(i) = 0
+  end do
+
+  kvec(3) = -zk0
+  epol(1) = 1.0d0
+
+  !
+  ! evaluate the planewaves and compute local expansions
+  !
+  do i=1,nspheres
+
+    do j=1,nnodes
+      do k = 1,3
+        targs(k,j) = rnodes(k,j)*radius(i) + centers(k,i)
+      end do
+    end do
+
+    call emplanearbtargeval(kvec, epol, nnodes, targs, evec1, hvec1)
 
 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !!!!! quadrature nodes on the sphere for SHE 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! form local expansion coefs for incoming field at each center
+    call em3ehformta(zk0, centers(1,i), radius(i), &
+        evec1, hvec1, rnodes, whts, nphi, ntheta, &
+        centers(1,i), ampvec, bmpvec, nterms) 
 
-!   itype = 1
-!   nquad = nterms
-!   nphi = 2*nquad+1
-!   ntheta = nquad+1
-
-!   allocate(rnodes(3,nphi*ntheta))
-!   allocate(whts(nphi*ntheta))
-
-!   !  nnodes = nphi*ntheta
-!   call e3fgrid(itype,nterms,nphi,ntheta,rnodes,whts,nnodes)
+    do n=0,nterms
+      do m=-n,n
+        aimpole(n,m,i) = ampvec(n,m)
+        bimpole(n,m,i) = bmpvec(n,m)
+      end do
+    end do
 
 
-!   !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !!!!!!  incoming field local expansion
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!   !       allocate(evecs(3,nnodes,nspheres))
-!   !       allocate(hvecs(3,nnodes,nspheres))
-!   allocate(evec1(3,nnodes))
-!   allocate(hvec1(3,nnodes))
-!   allocate(tgts(3,nnodes))
-
-!   allocate(aimpole(0:nterms,-nterms:nterms,nspheres))
-!   allocate(bimpole(0:nterms,-nterms:nterms,nspheres))
-!   allocate(aompole(0:nterms,-nterms:nterms,nspheres))
-!   allocate(bompole(0:nterms,-nterms:nterms,nspheres))
-
-!   allocate( ampvec(0:nterms,-nterms:nterms) )
-!   allocate( bmpvec(0:nterms,-nterms:nterms) )
+  end do
 
 
-! !!!!!! plane wave:
-!   do i=1,3
-!     kvec(i) = 0
-!     epol(i) = 0
-!   end do
+  !
+  ! form the rhs 
+  !
+  
+  n = 2*ncoefs*nspheres
+  allocate(rhs(n), sol(n), abvec(n))
 
-!   kvec(3)=-zk0
-!   epol(1) = 1.0d0
+  call multi_sphlin(aimpole, bimpole, nterms, nspheres, abvec)
 
-
-!   do i=1,nspheres
-
-!     do j=1,nnodes
-!       tgts(1:3,j) = rnodes(1:3,j)*radius(i)+centers(1:3,i)
-!     end do
-
-! !!! evaluate incoming fields 
-!     call emplanearbtargeval(kvec,epol,  &
-!         nnodes,tgts,evec1,hvec1)
-
-
-! !!! form local expansion coefs
-!     call em3ehformta(zk0,centers(1,i),radius(i), &
-!         evec1,hvec1,rnodes,whts,nphi,ntheta, &
-!         centers(1,i),ampvec,bmpvec,nterms) 
-
-
-!     do n=0,nterms
-!       do m=-n,n
-!         aimpole(n,m,i)=ampvec(n,m)
-!         bimpole(n,m,i)=bmpvec(n,m)
-!       end do
-!     end do
-
-
-!   end do
-
-
-
-
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !!!!!!!!!! form rhs: 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!   n = 2*ncoefs*nspheres
-!   allocate(rhs(n),sol(n),abvec(n))
-
-!   call multi_sphlin(aimpole,bimpole,nterms,nspheres,abvec)
-
-! !!!! apply scattering matrix to incoming field: 
+! !!!! apply 1scattering matrix to incoming field: 
 !   call scatmatr_multa_rot(rmatr,angles,nterms,nspheres, &
 !       abvec,rhs)
 

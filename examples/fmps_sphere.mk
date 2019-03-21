@@ -47,7 +47,7 @@ ifeq ($(HOST),osx-intel-openmp)
   export OMP_STACKSIZE=2048M
 endif
 
-ifeq ($(HOST),linux-gfortran-openmp)
+ifeq ($(HOST),linux-gcc-openmp)
   PROJECT = $(NAME)_linux_openmp
   OBJSUF = o
   MODSUF = mod
@@ -60,7 +60,7 @@ ifeq ($(HOST),linux-gfortran-openmp)
   #export OMP_STACKSIZE=4096M
 endif
 
-ifeq ($(HOST),linux-gfortran)
+ifeq ($(HOST),linux-gcc)
   PROJECT = $(NAME)_linux
   OBJSUF = o
   FC = gfortran
