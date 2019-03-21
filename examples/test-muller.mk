@@ -3,6 +3,7 @@
 ###HOST=linux-gfortran
 #HOST=osx-gfortran
 #HOST=osx-gfortran-openmp
+HOST=linux-intel-openmp
 
 
 ifeq ($(HOST),osx-gfortran)
