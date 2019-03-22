@@ -10,8 +10,8 @@ ifeq ($(HOST),osx-gcc)
   PROJECT = $(NAME)_osx
   OBJSUF = o
   FC = gfortran-8
-  FFLAGS = -O2
-  LDFLAGS = 
+  FFLAGS = -O2 -w
+  LDFLAGS = -framework accelerate
   #FLINK=gfortran -o $(PROJECT) -static
   FLINK = gfortran-8 -o $(PROJECT)
 endif
@@ -97,15 +97,10 @@ SRCDIR = ../src
 f90srcs = fmps_sphere.f90 \
   $(SRCDIR)/xtri_plot.f90 \
   $(SRCDIR)/lapack_wrap.f90 \
-  $(SRCDIR)/patchmatc.f90
+  $(SRCDIR)/fmps.f90
 
 fsrcs = $(SRCDIR)/emutils.f \
-  $(SRCDIR)/atrirouts.f \
-  $(SRCDIR)/atritools3.f \
-  $(SRCDIR)/patchmatc4.f \
   $(SRCDIR)/dotcross3d.f \
-  $(SRCDIR)/inter3dn.f \
-  $(SRCDIR)/rsolid.f \
   $(SRCDIR)/emdyadic.f \
   $(SRCDIR)/emplanew.f \
   $(SRCDIR)/emrouts2.f \
@@ -115,19 +110,6 @@ fsrcs = $(SRCDIR)/emutils.f \
   $(SRCDIR)/rotviarecur3.f \
   $(SRCDIR)/yrecursion.f \
   $(SRCDIR)/xrecursion.f \
-  $(SRCDIR)/triaadap.f \
-  $(SRCDIR)/ctriaadap.f \
-  $(SRCDIR)/triagauc.f \
-  $(SRCDIR)/triasymq.f \
-  $(SRCDIR)/selfquad_new.f \
-  $(SRCDIR)/selfquad.f \
-  $(SRCDIR)/radial.f \
-  $(SRCDIR)/print.f \
-  $(SRCDIR)/legendre.f \
-  $(SRCDIR)/c8triadam.f \
-  $(SRCDIR)/c9triadam.f \
-  $(SRCDIR)/c28triadam.f \
-  $(SRCDIR)/c29triadam.f \
   $(SRCDIR)/cgmres_rel.f \
   $(SRCDIR)/cgmressq_rel.f \
   $(SRCDIR)/cbicgstab_rel.f \

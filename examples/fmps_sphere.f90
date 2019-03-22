@@ -14,7 +14,7 @@ program fmps_sphere
   double precision, allocatable :: targs(:,:)
 
   double complex :: ceps0, cmu0, zk0
-  double complex :: kvec(3), epol(3)
+  double complex :: rkvec(3), epol(3)
   double complex, parameter :: ima = (0,1)
   double complex, allocatable :: rmatr(:,:)
   double complex, allocatable :: evec1(:,:), hvec1(:,:)
@@ -154,11 +154,11 @@ program fmps_sphere
   ! setup parameters for the planewave
   !
   do i=1,3
-    kvec(i) = 0
+    rkvec(i) = 0
     epol(i) = 0
   end do
 
-  kvec(3) = -zk0
+  rkvec(3) = -zk0
   epol(1) = 1.0d0
 
   !
@@ -172,8 +172,9 @@ program fmps_sphere
       end do
     end do
 
-    call emplanearbtargeval(kvec, epol, nnodes, targs, evec1, hvec1)
-
+    do j = 1,nnodes
+      call emplanearb(rkvec, epol, targs(1,j), evec1, hvec1)
+    end do
 
     ! form local expansion coefs for incoming field at each center
     call em3ehformta(zk0, centers(1,i), radius(i), &
@@ -200,9 +201,9 @@ program fmps_sphere
 
   call multi_sphlin(aimpole, bimpole, nterms, nspheres, abvec)
 
-! !!!! apply 1scattering matrix to incoming field: 
-!   call scatmatr_multa_rot(rmatr,angles,nterms,nspheres, &
-!       abvec,rhs)
+  ! apply 1scattering matrix to incoming field: 
+  !call scatmatr_multa_rot(rmatr,angles,nterms,nspheres, &
+  !     abvec,rhs)
 
 !   do i=1,n
 !     rhs(i)=-rhs(i)
@@ -263,7 +264,7 @@ program fmps_sphere
 !   allocate(hvect(3,ntgt))
 
 !   !! evaluate incoming fields on target grid points:
-!   call emplanearbtargeval(kvec,epol, &
+!   call emplanearbtargeval(rkvec,epol, &
 !       ntgt,outgt,eveci,hveci)
 
 !   !! evaluate scattered fields from each sphere:
