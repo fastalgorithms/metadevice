@@ -6,10 +6,9 @@
 
 NAME = fmps
 
-ifeq ($(HOST),osx-gfortran)
+ifeq ($(HOST),osx-gcc)
   PROJECT = $(NAME)_osx
   OBJSUF = o
-  MODSUF = mod
   FC = gfortran-8
   FFLAGS = -O2
   LDFLAGS = 
@@ -20,7 +19,6 @@ endif
 ifeq ($(HOST),osx-gfortran-openmp)
   PROJECT = $(NAME)_osx_openmp
   OBJSUF = o
-  MODSUF = mod
   FC = gfortran-8
   FFLAGS = -O2 -fopenmp -w
   LDFLAGS = -fopenmp -Wl,-stack_size,0x80000000 -framework accelerate
@@ -50,7 +48,6 @@ endif
 ifeq ($(HOST),linux-gfortran-openmp)
   PROJECT = $(NAME)_linux_openmp
   OBJSUF = o
-  MODSUF = mod
   FC = gfortran
   FFLAGS = -O2 -fopenmp -w
   LDFLAGS =

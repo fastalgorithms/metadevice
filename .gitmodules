@@ -1,0 +1,3 @@
+[submodule "contrib/emfmm"]
+	path = contrib/emfmm
+	url = git@gitlab.com:fastalgorithms/emfmm.git
