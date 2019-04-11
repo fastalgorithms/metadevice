@@ -93,8 +93,11 @@ endif
 # SOURCE FILE LIST
 #
 SRCDIR = ../src
+EMFMM = ../contrib/emfmm/src
+UTILITIES = ../contrib/utilities/src
 
 f90srcs = fmps_sphere.f90 \
+  $(SRCDIR)/scat_multa.f90 \
   $(SRCDIR)/xtri_plot.f90 \
   $(SRCDIR)/lapack_wrap.f90 \
   $(SRCDIR)/fmps.f90

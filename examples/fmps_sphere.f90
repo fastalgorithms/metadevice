@@ -202,12 +202,12 @@ program fmps_sphere
   call multi_sphlin(aimpole, bimpole, nterms, nspheres, abvec)
 
   ! apply 1scattering matrix to incoming field: 
-  !call scatmatr_multa_rot(rmatr,angles,nterms,nspheres, &
-  !     abvec,rhs)
+  call scatmatr_multa_rot(rmatr, angles, nterms, nspheres, &
+      abvec, rhs)
 
-!   do i=1,n
-!     rhs(i)=-rhs(i)
-!   end do
+  do i=1,n
+    rhs(i)=-rhs(i)
+  end do
 
 !   numit = 200
 !   eps = 1e-10
